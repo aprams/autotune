@@ -18,6 +18,14 @@ class Param(ABC):
         pass
 
     @abstractmethod
+    def transform_raw_sample(self, raw_sample):
+        pass
+
+    @abstractmethod
+    def raw_sample(self):
+        pass
+
+    @abstractmethod
     def create_generator(self):
         pass
 
@@ -28,9 +36,16 @@ class Integer(Param):
             space = [0, 1]
         super(Integer, self).__init__(space, projection_fn, name)
 
+
     def sample(self):
-        rand_item = self.space[random.randint(len(self.space))]
-        return self.projection_fn(rand_item)
+        return self.transform_raw_sample(self.raw_sample())
+
+    def transform_raw_sample(self, raw_sample):
+        return self.projection_fn(self.space[int(raw_sample)])
+
+    def raw_sample(self):
+        rand_item = random.randint(0, len(self.space) - 1)
+        return rand_item
 
     def create_generator(self):
         def generator():
@@ -40,7 +55,7 @@ class Integer(Param):
 
 
 class Real(Param):
-    def __init__(self, space=None, projection_fn=None, name="RealParam", n_points_to_sample=0):
+    def __init__(self, space=None, projection_fn=None, name="RealParam", n_points_to_sample=50):
         if space is None:
             space = [0, 1]
         if len(space) != 2:
@@ -51,8 +66,14 @@ class Real(Param):
         super(Real, self).__init__(space, projection_fn, name)
 
     def sample(self):
+        return self.transform_raw_sample(self.raw_sample())
+
+    def transform_raw_sample(self, raw_sample):
+        return self.projection_fn(raw_sample)
+
+    def raw_sample(self):
         random_sample = random.uniform(self.lower_bound, self.upper_bound)
-        return self.projection_fn(random_sample)
+        return random_sample
 
     def create_generator(self):
         def generator():
@@ -62,18 +83,10 @@ class Real(Param):
         return generator
 
 
-class Bool(Param):
+class Bool(Integer):
     def __init__(self, space=None, projection_fn=None, name="BoolParam"):
-        if space is not None and space != [0, 1]:
-            raise Exception('For Bools, no space or space of [0, 1] must be given')
+        if space is None:
+            space = [0, 1]
+        if space != [0, 1]:
+            raise Exception('For Bool no space or space of [0, 1] must be given')
         super(Bool, self).__init__(space, projection_fn, name)
-
-    def sample(self):
-        random_sample = bool(random.randint(0, 1))
-        return random_sample
-
-    def create_generator(self):
-        def generator():
-            for i in [0, 1]:
-                yield i
-        return generator

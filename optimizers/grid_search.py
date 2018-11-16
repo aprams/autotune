@@ -1,6 +1,7 @@
 from .hyper_param_opt import AbstractHyperParameterOptimizer
 from param_space import Param
 
+
 class GridSearchOptimizer(AbstractHyperParameterOptimizer):
 
     def _get_all_param_combinations(self, dicts: list=None, tmp_dict: dict=None, i: int=0):
@@ -15,16 +16,19 @@ class GridSearchOptimizer(AbstractHyperParameterOptimizer):
             tmp_dict = {}
             dicts = []
         if i == len(self.hyper_param_list):
-            dicts.extend([dict])
+            dicts.extend([tmp_dict])
         else:
-            param = list(self.hyper_param_list())[i]
-            for j in param.create_generator():
-                tmp_dict[param] = j
+            param = list(self.hyper_param_list)[i]
+            generator = param.create_generator()
+            for j in generator():
+                tmp_dict[param.name] = j
                 self._get_all_param_combinations(dicts, tmp_dict.copy(), i + 1)
         return dicts
 
     def _create_hyperparam_set_generator(self):
         hyperparam_combinations = self._get_all_param_combinations()
+        if self.verbose >= 2:
+            print("All hyperparameter combinations: {0}".format(hyperparam_combinations))
 
         def generator() -> Param:
             for x in hyperparam_combinations:
