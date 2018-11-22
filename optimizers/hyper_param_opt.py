@@ -9,6 +9,7 @@ class AbstractHyperParameterOptimizer(ABC):
         self.eval_fn = eval_fn
         self.callback_fn = callback_fn
         self.params_to_results_dict = {}
+        self.eval_fn_per_timestep = []
         self.verbose = verbose
 
     def initialize(self):
@@ -37,6 +38,7 @@ class AbstractHyperParameterOptimizer(ABC):
 
     def _add_sampled_point(self, hyperparameter_set: list, eval_metric: float):
         self.params_to_results_dict[frozenset(hyperparameter_set.items())] = eval_metric
+        self.eval_fn_per_timestep += [eval_metric]
 
     def _on_optimizer_step_done(self, hyperparameter_set: list, eval_metric: float):
         if self.verbose >= 2:
