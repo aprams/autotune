@@ -1,0 +1,7 @@
+numpy
+scipy
+scikit-learn
+matplotlib
+h5py
+pytest
+-e git+https://github.com/aprams/BayesianOptimization.git#egg=bayes_opt
