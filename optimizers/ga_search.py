@@ -23,6 +23,7 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
         self.n_unique_samples = n_unique_samples
         self.cur_gen_pops = []
         self.last_tested_pop_result = -np.inf
+        self.name = "GA"
 
     def _create_hyperparam_set_generator(self):
         return self.ga_search

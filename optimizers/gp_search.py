@@ -20,6 +20,7 @@ class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
 
         self.bo._acqkw = {'n_warmup': gp_n_warmup, 'n_iter': gp_n_iter}
         self.gp_params = gp_params
+        self.name = "GP"
 
     def transform_raw_param_samples(self, pop):
         param_dict = {}

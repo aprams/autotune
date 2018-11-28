@@ -1,8 +1,14 @@
+from typing import Callable
+
 from .hyper_param_opt import AbstractHyperParameterOptimizer
 from param_space import Param
 
 
 class GridSearchOptimizer(AbstractHyperParameterOptimizer):
+
+    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable):
+        super().__init__(hyper_param_list, eval_fn, callback_fn)
+        self.name = "GridSearch"
 
     def _get_all_param_combinations(self, dicts: list=None, tmp_dict: dict=None, i: int=0):
         """

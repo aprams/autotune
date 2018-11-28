@@ -11,6 +11,7 @@ class AbstractHyperParameterOptimizer(ABC):
         self.params_to_results_dict = {}
         self.eval_fn_per_timestep = []
         self.verbose = verbose
+        self.name = "abstract"
 
     def initialize(self):
         pass
