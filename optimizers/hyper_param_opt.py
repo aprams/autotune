@@ -4,14 +4,17 @@ from abc import ABC, abstractmethod
 
 
 class AbstractHyperParameterOptimizer(ABC):
-    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, verbose: int=1):
+    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, verbose: int=1, should_call_eval_fn=True):
         self.hyper_param_list = hyper_param_list
         self.eval_fn = eval_fn
         self.callback_fn = callback_fn
         self.params_to_results_dict = {}
         self.eval_fn_per_timestep = []
+        self.hyperparameter_set_per_timestep = []
         self.verbose = verbose
         self.name = "abstract"
+        self.should_call_eval_fn = should_call_eval_fn
+
 
     def initialize(self):
         pass
@@ -23,10 +26,11 @@ class AbstractHyperParameterOptimizer(ABC):
     def maximize(self) -> dict:
         generator = self._create_hyperparam_set_generator()
         for next_hyperparam_set in generator():
-            eval_metric = self.eval_fn(next_hyperparam_set)
+            if self.should_call_eval_fn:
+                eval_metric = self.eval_fn(next_hyperparam_set)
 
-            self._add_sampled_point(next_hyperparam_set, eval_metric)
-            self._on_optimizer_step_done(next_hyperparam_set, eval_metric)
+                self._add_sampled_point(next_hyperparam_set, eval_metric)
+            self._on_optimizer_step_done(self.hyperparameter_set_per_timestep[-1], self.eval_fn_per_timestep[-1])
 
         self._on_optimizer_done()
         print("======")
@@ -37,9 +41,10 @@ class AbstractHyperParameterOptimizer(ABC):
         print("======")
         return sorted_results
 
-    def _add_sampled_point(self, hyperparameter_set: list, eval_metric: float):
+    def _add_sampled_point(self, hyperparameter_set: dict, eval_metric: float):
         self.params_to_results_dict[frozenset(hyperparameter_set.items())] = eval_metric
         self.eval_fn_per_timestep += [eval_metric]
+        self.hyperparameter_set_per_timestep += [frozenset(hyperparameter_set.items())]
 
     def _on_optimizer_step_done(self, hyperparameter_set: list, eval_metric: float):
         if self.verbose >= 2:

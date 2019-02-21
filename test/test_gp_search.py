@@ -2,7 +2,7 @@ import random
 import numpy as np
 from optimizers import gp_search
 
-from test.test_data import sample_params, sample_eval_fn, sample_callback_fn
+from test.test_data import sample_params, sample_eval_fn, sample_callback_fn, example_2d_params, example_2d_eval_fn
 from .utils import save_plotted_progress
 
 def test_gp_search(n_iterations=20, gp_n_warmup=100000, gp_n_iter=25, n_restarts_optimizer=5):
@@ -20,3 +20,5 @@ def test_gp_search(n_iterations=20, gp_n_warmup=100000, gp_n_iter=25, n_restarts
     assert(results[0][1] > 13.70)
 
     return optimizer
+
+

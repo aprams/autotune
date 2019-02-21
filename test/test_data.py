@@ -18,3 +18,17 @@ def sample_eval_fn(params):
 
 def sample_callback_fn(**params):
     print(params)
+
+
+example_2d_x_var = param_space.Real([1, 5], name='x',  n_points_to_sample=3)
+example_2d_y_var = param_space.Real([1, 5], name='y',  n_points_to_sample=3)
+
+example_2d_params = [example_2d_x_var, example_2d_y_var]
+
+def example_2d_eval_fn(params):
+    a1 = 76.333
+    a2 = -47.0
+    a3 = 11.66667
+    a4 = -1.0
+    offset = -39
+    return offset + a1 * params['x'] + a2 * params['x']**2 + a3 * params['x']**3 + a4 * params['x']**4

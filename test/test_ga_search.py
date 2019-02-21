@@ -2,11 +2,11 @@ import random
 import numpy as np
 from optimizers import ga_search
 
-from test.test_data import sample_params, sample_eval_fn, sample_callback_fn
+from test.test_data import sample_params, sample_eval_fn, sample_callback_fn, example_2d_params, example_2d_eval_fn
 from test.utils import save_plotted_progress
 
 
-def test_ga_search(n_iterations = 2000):
+def test_ga_search(n_iterations=2000):
     print("-" * 53)
     print("Testing GA")
     np.random.seed(0)

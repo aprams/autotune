@@ -2,6 +2,7 @@ from test.test_ga_search import test_ga_search
 from test.test_gp_search import test_gp_search
 from test.test_grid_search import test_grid_search
 from test.test_random_search import test_random_search
+from test.test_tpe_search import test_tpe_search
 
 from test.utils import save_plotted_progress
 
@@ -10,8 +11,9 @@ ga_optimizer = test_ga_search(n_iterations=2000)
 gs_optimizer = test_grid_search()
 rs_optimizer = test_random_search(n_iterations=2000)
 gp_optimizer = test_gp_search(n_iterations=250, gp_n_iter=250, gp_n_warmup=100000)
+tpe_optimizer = test_tpe_search(n_iterations=1000)
 
-optimizers = [ga_optimizer, gs_optimizer, rs_optimizer, gp_optimizer]
+optimizers = [ga_optimizer, gs_optimizer, rs_optimizer, gp_optimizer, tpe_optimizer]
 all_cum_max_data = []
 
 for i in range(len(optimizers)):

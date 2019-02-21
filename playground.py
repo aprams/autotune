@@ -93,3 +93,30 @@ plt.ylim(-10, 20)
 plt.legend(loc='upper left')
 
 plt.savefig('plots/plot2')
+
+
+from hyperopt import tpe, Trials, fmin, hp
+
+MAX_EVALS = 10
+
+# Algorithm
+tpe_algorithm = tpe.suggest
+# Trials object to track progress
+bayes_trials = Trials()
+
+space = {'x': hp.normal('x', 4.9, 0.5), 'y': hp.uniform('y', 0.0, 1.0)}
+
+def foo(space):
+    print(space)
+    return np.power(space['x'], space['y'])
+
+# Optimize
+for i in range(50):
+    best = fmin(fn=foo, space=space, algo=tpe.suggest,
+                max_evals=i + 1, trials=bayes_trials)
+    print([bayes_trials.vals[key][-1] for key in bayes_trials.vals.keys()], bayes_trials.results[-1]['loss'])
+
+print(best)
+print(bayes_trials.trials)
+print(bayes_trials.results)
+print(bayes_trials.vals['x'])
