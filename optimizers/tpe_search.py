@@ -5,6 +5,7 @@ from .hyper_param_opt import AbstractHyperParameterOptimizer
 from hyperopt import tpe, Trials, fmin, hp
 
 class TPEOptimizer(AbstractHyperParameterOptimizer):
+    name = "TPE"
     def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, verbose: int = 1,
                  n_iterations=50):
         self.n_iterations = n_iterations

@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 
 
 class AbstractHyperParameterOptimizer(ABC):
+    name = "abstract"
     def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, verbose: int=1, should_call_eval_fn=True):
         self.hyper_param_list = hyper_param_list
         self.eval_fn = eval_fn

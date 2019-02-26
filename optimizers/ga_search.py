@@ -13,14 +13,15 @@ def softmax(x):
 
 
 class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
+    name = "GA"
     def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, verbose: int = 1, n_pops=5,
-                 n_unique_samples=100, elite_pops_fraction = 0.2):
+                 n_iterations=100, elite_pops_fraction = 0.2):
         super().__init__(hyper_param_list, eval_fn, callback_fn, verbose)
         self.n_pops = n_pops
         self.pops = self.gen_random_pops(self.n_pops)
         self.best_pops = self.pops
         self.n_elite_pops = int(self.n_pops * elite_pops_fraction)
-        self.n_unique_samples = n_unique_samples
+        self.n_unique_samples = n_iterations
         self.cur_gen_pops = []
         self.last_tested_pop_result = -np.inf
         self.name = "GA"

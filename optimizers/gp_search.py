@@ -5,6 +5,7 @@ from .hyper_param_opt import AbstractHyperParameterOptimizer
 from bayes_opt import BayesianOptimization
 
 class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
+    name = "GP"
     def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, verbose: int = 1,
                  n_iterations=50, n_init_points=5, random_state=0, gp_n_warmup=100000, gp_n_iter=250, **gp_params):
         self.n_iterations = n_iterations
@@ -19,7 +20,8 @@ class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
                                   random_state=random_state)
 
         self.bo._acqkw = {'n_warmup': gp_n_warmup, 'n_iter': gp_n_iter}
-        self.gp_params = gp_params
+        self.gp_params = gp_params if gp_params is not None else {"alpha": 1e-5, "n_restarts_optimizer": 5}
+
         self.name = "GP"
 
     def transform_raw_param_samples(self, pop):

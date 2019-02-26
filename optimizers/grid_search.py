@@ -5,8 +5,9 @@ from param_space import Param
 
 
 class GridSearchOptimizer(AbstractHyperParameterOptimizer):
+    name = "GridSearch"
 
-    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable):
+    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, n_iterations=None):
         super().__init__(hyper_param_list, eval_fn, callback_fn)
         self.name = "GridSearch"
 
