@@ -14,7 +14,7 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
         self.name = "TPE"
 
     def transform_raw_param_samples(self, pop):
-        print("pop:", pop.keys())
+        print("TPE params:", pop.keys())
         param_dict = {}
         for i in range(len(self.hyper_param_list)):
             cur_hyp_param = self.hyper_param_list[i]
@@ -44,7 +44,7 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
             for i in range(self.n_iterations):
                 fmin(fn=lambda params: -self.eval_fn(self.transform_raw_param_samples(params)),
                      space=self.tpe_space, algo=tpe.suggest, max_evals=i + 1, trials=bayes_trials)
-                yield [bayes_trials.vals[x][-1] for x in bayes_trials.vals.keys()], bayes_trials.results[-1]['loss']
+                yield [bayes_trials.vals[x][-1] for x in bayes_trials.vals.keys()], -bayes_trials.results[-1]['loss']
         return tpe_generator
 
     def maximize(self) -> dict:

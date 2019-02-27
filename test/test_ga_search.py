@@ -13,7 +13,7 @@ def test_ga_search(n_iterations=2000):
     random.seed(0)
 
     optimizer = ga_search.GeneticAlgorithmSearch(sample_params, sample_eval_fn, callback_fn=sample_callback_fn,
-                                                 n_pops=8, n_unique_samples=n_iterations, elite_pops_fraction=0.2)
+                                                 n_pops=8, n_iterations=n_iterations, elite_pops_fraction=0.2)
     results = optimizer.maximize()
     assert(results[0][1] >= 13.86)
 

@@ -4,8 +4,8 @@ from optimizers import grid_search, random_search, ga_search, gp_search, tpe_sea
 from preprocess_hpo_dataset import create_index_param_space
 
 
-optimizers = [grid_search.GridSearchOptimizer, random_search.RandomSearchOptimizer, ga_search.GeneticAlgorithmSearch,
-              tpe_search.TPEOptimizer]#, gp_search.GaussianProcessOptimizer]
+optimizers = [gp_search.GaussianProcessOptimizer, random_search.RandomSearchOptimizer, ga_search.GeneticAlgorithmSearch,
+             tpe_search.TPEOptimizer]#grid_search.GridSearchOptimizer ]
 
 # Load preprocessed data dicts
 with open('../hpo_dataset/preprocessed_data.pickle', 'rb') as handle:
@@ -19,12 +19,11 @@ for k in classifier_indexed_params.keys():
     param_list = create_index_param_space(classifier_param_values[k])
     for p in param_list:
         print(p.name, p.space)
-
     classifier_param_spaces[k] = param_list
 
 n_datasets = 42
 n_repititions_per_optimizer = 10
-optimizer_steps = 25
+optimizer_steps = 100
 optimizer_results = {}
 
 for optimizer in optimizers:
@@ -39,21 +38,22 @@ for optimizer in optimizers:
                     print(p.name, p.space)
 
                 def eval_fn(params):
-                    print("PARAMS: ", params)
                     modified_params = dict(params)
                     if modified_params['preprocessing'] == 0:
                         del modified_params['pca:keep_variance']
-                    return classifier_indexed_params[classifier][frozenset(modified_params.items())][dataset_idx]
+                    # minimize val error
+                    return -classifier_indexed_params[classifier][frozenset(modified_params.items())][dataset_idx]
 
                 def sample_callback_fn(**params):
                     print(params)
 
-                print(classifier_param_values[classifier])
                 print(optimizer.name)
                 tmp_opt = optimizer(classifier_param_spaces[classifier], eval_fn, callback_fn=sample_callback_fn,
                                     n_iterations=optimizer_steps)
-                tmp_results = tmp_opt.maximize()
+                _ = tmp_opt.maximize()
+                tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep))
                 tmp_agg_results += [tmp_results]
+                print("Len tmp results: ", len(tmp_results))
             optimizer_results[optimizer.name][classifier] += [tmp_agg_results]
 
 

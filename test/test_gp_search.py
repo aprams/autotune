@@ -22,3 +22,13 @@ def test_gp_search(n_iterations=20, gp_n_warmup=100000, gp_n_iter=25, n_restarts
     return optimizer
 
 
+
+# warmup: 10^5, gp_n_iter: 250, n_restarts_optimizer=5 => 28.57s
+# warmup: 10^2, gp_n_iter: 250, n_restarts_optimizer=5 => 29.505s
+# warmup: 10^5, gp_n_iter: 5, n_restarts_optimizer=5 => 4.363s
+# warmup: 10^5, gp_n_iter: 5, n_restarts_optimizer=2 => 3.837s
+# warmup: 10^5, gp_n_iter: 250, n_restarts_optimizer=2 => 30.330s
+# warmup: 10^5, gp_n_iter: 25, n_restarts_optimizer=5 => 6.110s
+# warmup: 10^4, gp_n_iter: 25, n_restarts_optimizer=5 => 3.552s
+# warmup: 10^5, gp_n_iter: 15, n_restarts_optimizer=5 => 5.549
+
