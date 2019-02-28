@@ -1,10 +1,11 @@
 import os
 import sys
+import config
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-PLOT_FOLDER = "./plots/"
+PLOT_FOLDER = config.PLOT_FOLDER
 
 def save_plotted_progress(optimizer, data=None, name=None, x_lim=None, y_lim=None):
     os.makedirs(PLOT_FOLDER, exist_ok=True)
@@ -106,3 +107,18 @@ def gen_example_2d_plot(sample_points, target_fn, param_ranges, name=None):
     plt.cla()
     plt.close()
 
+def branin(a=1, b=5.1 / (4 * np.pi**2), c=5. / np.pi,
+           r=6, s=10, t=1. / (8 * np.pi)):
+    # Taken from: https://fluentopt.readthedocs.io/en/latest/auto_examples/plot_dict_format.html
+    """Branin-Hoo function is defined on the square x1 ∈ [-5, 10], x2 ∈ [0, 15].
+    It has three minima with f(x*) = 0.397887 at x* = (-pi, 12.275),
+    (+pi, 2.275), and (9.42478, 2.475).
+    More details: <http://www.sfu.ca/~ssurjano/branin.html>
+
+    This code is adapted from : https://github.com/scikit-optimize/scikit-optimize
+    """
+    def f(d):
+        x, y = d['x'], d['y']
+        return (a * (y - b * x ** 2 + c * x - r) ** 2 +
+                s * (1 - t) * np.cos(x) + s)
+    return f

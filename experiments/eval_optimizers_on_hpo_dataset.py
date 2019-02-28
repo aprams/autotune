@@ -21,9 +21,9 @@ for k in classifier_indexed_params.keys():
         print(p.name, p.space)
     classifier_param_spaces[k] = param_list
 
-n_datasets = 42
-n_repititions_per_optimizer = 10
-optimizer_steps = 100
+n_datasets = 2 # 42
+n_repititions_per_optimizer = 2 # 10
+optimizer_steps = 50 # 100
 optimizer_results = {}
 
 for optimizer in optimizers:

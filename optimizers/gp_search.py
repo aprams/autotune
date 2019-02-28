@@ -20,7 +20,7 @@ class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
                                   random_state=random_state)
 
         self.bo._acqkw = {'n_warmup': gp_n_warmup, 'n_iter': gp_n_iter}
-        self.gp_params = gp_params if gp_params is not None else {"alpha": 1e-5, "n_restarts_optimizer": 5}
+        self.gp_params = gp_params if gp_params is not None else {"alpha": 1e-3, "n_restarts_optimizer": 5}
 
         self.name = "GP"
 
