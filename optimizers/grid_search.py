@@ -8,7 +8,7 @@ class GridSearchOptimizer(AbstractHyperParameterOptimizer):
     name = "GridSearch"
 
     def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, n_iterations=None):
-        super().__init__(hyper_param_list, eval_fn, callback_fn)
+        super().__init__(hyper_param_list, eval_fn, callback_fn, random_seed=None)
         self.name = "GridSearch"
 
     def _get_all_param_combinations(self, dicts: list=None, tmp_dict: dict=None, i: int=0):

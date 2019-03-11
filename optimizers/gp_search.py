@@ -7,7 +7,7 @@ from bayes_opt import BayesianOptimization
 class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
     name = "GP"
     def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, verbose: int = 1,
-                 n_iterations=50, n_init_points=5, random_state=0, gp_n_warmup=100000, gp_n_iter=25, **gp_params):
+                 n_iterations=50, n_init_points=5, random_seed=None, gp_n_warmup=100000, gp_n_iter=25, **gp_params):
         self.n_iterations = n_iterations
         self.n_init_points = n_init_points
         super().__init__(hyper_param_list, eval_fn, callback_fn, verbose)
@@ -17,7 +17,7 @@ class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
         self.bo = BayesianOptimization(f=lambda **params: eval_fn(self.transform_raw_param_samples(pop=params)),
                                   pbounds=param_bounds,
                                   verbose=0,
-                                  random_state=random_state)
+                                  random_state=random_seed)
 
         self.bo._acqkw = {'n_warmup': gp_n_warmup, 'n_iter': gp_n_iter}
         self.gp_params = gp_params if gp_params is not None else {"alpha": 1e-3, "n_restarts_optimizer": 5}
@@ -56,12 +56,16 @@ class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
 
     def maximize(self) -> dict:
         generator = self._create_hyperparam_set_generator()
+
+        self._on_pre_hyp_opt_step()
         for next_hyperparam_set, eval_metric in generator():
+            self._on_post_hyp_opt_step()
             next_hyperparam_set_dict = {}
             for i in range(len(next_hyperparam_set)):
                 next_hyperparam_set_dict[self.hyper_param_list[i].name] = next_hyperparam_set[i]
             self._add_sampled_point(next_hyperparam_set_dict, eval_metric)
             self._on_optimizer_step_done(next_hyperparam_set_dict, eval_metric)
+            self._on_pre_hyp_opt_step()
 
         self._on_optimizer_done()
         print("======")

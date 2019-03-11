@@ -6,11 +6,13 @@ from hyperopt import tpe, Trials, fmin, hp
 
 class TPEOptimizer(AbstractHyperParameterOptimizer):
     name = "TPE"
-    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, verbose: int = 1,
-                 n_iterations=50):
+    def __init__(self, hyper_param_list, eval_fn: Callable, callback_fn: Callable, verbose: int = 1,
+                 n_iterations=50, random_seed=None):
         self.n_iterations = n_iterations
         super().__init__(hyper_param_list, eval_fn, callback_fn, verbose, should_call_eval_fn=False)
-        self.tpe_space = self._create_tpe_space_from_param_space(hyper_param_list)
+        is_hpo_space = False if type(hyper_param_list) is list else True
+        self.tpe_space = self._create_tpe_space_from_param_space(hyper_param_list) if not is_hpo_space else hyper_param_list
+        self.is_hpo_space = is_hpo_space
         self.name = "TPE"
 
     def transform_raw_param_samples(self, pop):
@@ -41,21 +43,31 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
             bayes_trials = Trials()
 
             # Optimize
+            print(type(self.tpe_space))
+            print(type(self.eval_fn))
             for i in range(self.n_iterations):
-                fmin(fn=lambda params: -self.eval_fn(self.transform_raw_param_samples(params)),
+                fn = lambda params: -self.eval_fn(self.transform_raw_param_samples(params)) if not self.is_hpo_space else lambda params: -self.eval_fn(params)
+                fmin(fn=self.eval_fn,
                      space=self.tpe_space, algo=tpe.suggest, max_evals=i + 1, trials=bayes_trials)
-                yield [bayes_trials.vals[x][-1] for x in bayes_trials.vals.keys()], -bayes_trials.results[-1]['loss']
+                print(bayes_trials.vals)
+                print("results: ", bayes_trials.results)
+                print("x", bayes_trials.idxs_vals)
+                print("yielding", [(x, bayes_trials.vals[x][-1]) for x in bayes_trials.vals.keys() if i in bayes_trials.idxs[x]])
+                yield {x: bayes_trials.vals[x][-1] for x in bayes_trials.vals.keys() if i in bayes_trials.idxs[x]}, -bayes_trials.results[-1]['loss']
         return tpe_generator
 
     def maximize(self) -> dict:
         generator = self._create_hyperparam_set_generator()
+
+        self._on_pre_hyp_opt_step()
         for next_hyperparam_set, eval_metric in generator():
-            next_hyperparam_set_dict = {}
-            for i in range(len(next_hyperparam_set)):
-                next_hyperparam_set_dict[self.hyper_param_list[i].name] = next_hyperparam_set[i]
+            self._on_post_hyp_opt_step()
+            next_hyperparam_set_dict = next_hyperparam_set
+            #for i in range(len(next_hyperparam_set)):
+            #    next_hyperparam_set_dict[self.hyper_param_list[i].name] = next_hyperparam_set[i]
             self._add_sampled_point(next_hyperparam_set_dict, eval_metric)
             self._on_optimizer_step_done(next_hyperparam_set_dict, eval_metric)
-
+            self._on_pre_hyp_opt_step()
         self._on_optimizer_done()
         print("======")
         sorted_results = sorted(self.params_to_results_dict.items(), key=lambda kv: kv[1], reverse=True)

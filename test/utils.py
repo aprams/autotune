@@ -62,17 +62,20 @@ def gen_example_2d_plot(sample_points, target_fn, param_ranges, name=None):
         plt.scatter
     )
 
-
+    p.ax_marg_x.xlim = (0, np.max(x_marginal))
+    p.ax_marg_x.ylim = (0, np.max(x_marginal))
     p.ax_marg_x.fill_between(
         x_range,
-        x_marginal,
-        alpha=0.5
+        x_marginal * x_marginal,
+        alpha=0.5,
+        clim=(0, np.max(x_marginal))
     )
 
     p.ax_marg_y.fill_betweenx(
         y_range,
-        y_marginal,
-        alpha=0.5
+        y_marginal * 0.1,
+        alpha=0.5,
+        clim=(0, 1e10)
     )
 
     sample_points_x_sorted_idx = np.argsort(sample_points[:, 0])
@@ -95,12 +98,12 @@ def gen_example_2d_plot(sample_points, target_fn, param_ranges, name=None):
 
     print(evaluations_y_sorted)
 
-    p.ax_marg_y.scatter(
-        evaluations_y_sorted,
-        sample_points_y_sorted,
-        # orientation = 'horizontal',
-        alpha=0.5,
-        color='k')
+    #p.ax_marg_y.scatter(
+    #    evaluations_y_sorted,
+    #    sample_points_y_sorted,
+    #    # orientation = 'horizontal',
+    #    alpha=0.5,
+    #    color='k')
 
     plt.savefig(os.path.join(PLOT_FOLDER, _name))
     plt.clf()

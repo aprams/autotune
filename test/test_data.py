@@ -20,8 +20,8 @@ def sample_callback_fn(**params):
     print(params)
 
 
-example_2d_x_var = param_space.Real([1, 5], name='x',  n_points_to_sample=3)
-example_2d_y_var = param_space.Real([1, 5], name='y',  n_points_to_sample=3)
+example_2d_x_var = param_space.Real([1, 5], name='x',  n_points_to_sample=5)
+example_2d_y_var = param_space.Real([1, 5], name='y',  n_points_to_sample=5)
 
 example_2d_params = [example_2d_x_var, example_2d_y_var]
 

@@ -90,3 +90,26 @@ class Bool(Integer):
         if space != [0, 1]:
             raise Exception('For Bool no space or space of [0, 1] must be given')
         super(Bool, self).__init__(space, projection_fn, name)
+
+
+class Conditional(Param):
+    def __init__(self, space=None, projection_fn=None, name="IntegerParam"):
+        assert(type(space) is list)
+        super(Conditional, self).__init__(space, projection_fn, name)
+
+
+    def sample(self):
+        return self.transform_raw_sample(self.raw_sample())
+
+    def transform_raw_sample(self, raw_sample):
+        return self.projection_fn(self.space[int(raw_sample)])
+
+    def raw_sample(self):
+        rand_item = random.randint(0, len(self.space) - 1)
+        return rand_item
+
+    def create_generator(self):
+        def generator():
+            for i in self.space:
+                yield self.projection_fn(i)
+        return generator

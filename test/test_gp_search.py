@@ -18,6 +18,8 @@ def test_gp_search(n_iterations=20, gp_n_warmup=100000, gp_n_iter=25, n_restarts
                                                    gp_n_iter=gp_n_iter, **gp_params)
     results = optimizer.maximize()
     assert(results[0][1] > 13.70)
+    print("Optimizer wall timings: ", optimizer.wall_time_per_opt_timestep)
+    print("Optimizer cpu timings: ", optimizer.cpu_time_per_opt_timestep)
 
     return optimizer
 
