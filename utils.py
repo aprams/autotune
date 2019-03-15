@@ -4,6 +4,7 @@ import config
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import math
 
 PLOT_FOLDER = config.PLOT_FOLDER
 
@@ -125,3 +126,33 @@ def branin(a=1, b=5.1 / (4 * np.pi**2), c=5. / np.pi,
         return (a * (y - b * x ** 2 + c * x - r) ** 2 +
                 s * (1 - t) * np.cos(x) + s)
     return f
+
+def get_loss_ranges_per_classifier_dataset(losses, max_n_datasets=None):
+    """
+    Extracts minimum and maximum losses per dataset and classifier
+    :param losses: dict of [classifier][parameters:frozenset][dataset_idx] mapping to a float loss
+    :param max_n_datasets: max number of datasets to look at
+    :return: dict [classifier] mapping to numpy array of shape [n_datasets, 2] with the last dimension being (min_val,
+    max_val)
+    """
+    loss_ranges = {}
+    for c in losses:
+        loss_ranges[c] = []
+        for ds_idx in range(len(list(losses[c].values())[0])):
+            if max_n_datasets is not None and ds_idx >= max_n_datasets:
+                break
+            min_val = math.inf
+            max_val = -math.inf
+            for params in list(losses[c].keys()):
+                tmp_val = losses[c][params][ds_idx]
+                if tmp_val < min_val:
+                    min_val = tmp_val
+                if tmp_val > max_val:
+                    max_val = tmp_val
+            #print("Loss range for classifier {0} and dataset index {1} is {2}".format(c, ds_idx, (min_val, max_val)))
+            if min_val == max_val:
+                print("SAME MIN AND MAX FOR ", c, ds_idx)
+            loss_ranges[c] += [(min_val, max_val)]
+        loss_ranges[c] = np.array(loss_ranges[c])
+    return loss_ranges
+

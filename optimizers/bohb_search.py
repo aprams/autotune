@@ -26,7 +26,7 @@ class BOHB_Worker(Worker):
 
 
 class BOHBOptimizer(AbstractHyperParameterOptimizer):
-    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, verbose: int = 1, random_seed=None):
+    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable=None, verbose: int = 1, random_seed=None):
         super().__init__(hyper_param_list, eval_fn, callback_fn, verbose)
         self.tpe_space = self._create_tpe_space_from_param_space(hyper_param_list)
         self.name = "BOHB"

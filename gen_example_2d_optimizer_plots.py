@@ -3,7 +3,7 @@ import numpy as np
 from optimizers import grid_search, random_search, ga_search, gp_search, tpe_search
 
 from test.test_data import sample_callback_fn, example_2d_params, example_2d_eval_fn
-from test.utils import gen_example_2d_plot
+from utils import gen_example_2d_plot
 
 
 def example_2d_grid_search():

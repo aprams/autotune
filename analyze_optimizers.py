@@ -4,7 +4,7 @@ from test.test_grid_search import test_grid_search
 from test.test_random_search import test_random_search
 from test.test_tpe_search import test_tpe_search
 
-from test.utils import save_plotted_progress
+from utils import save_plotted_progress
 
 
 ga_optimizer = test_ga_search(n_iterations=2000)
@@ -26,7 +26,6 @@ for i in range(len(optimizers)):
     save_plotted_progress(o, data=cumulative_max_data, name="cum_max_" + o.name, y_lim=[0, 14])
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 for x in all_cum_max_data:
     plt.semilogx(x)

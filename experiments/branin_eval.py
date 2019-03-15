@@ -1,5 +1,4 @@
 import random
-import numpy as np
 import param_space
 import config
 from optimizers import grid_search, random_search, ga_search, gp_search, tpe_search
@@ -8,7 +7,7 @@ import numpy as np
 import os
 
 from test.test_data import sample_callback_fn
-from test.utils import gen_example_2d_plot, branin, save_plotted_progress
+from utils import gen_example_2d_plot, branin, save_plotted_progress
 
 
 branin_x = param_space.Real([-5, 10], name='x', n_points_to_sample=200)
@@ -18,9 +17,6 @@ branin_param_space = [branin_x, branin_y]
 branin_eval_fn = lambda params: -branin()(params)
 
 branin_samples = []
-from mpl_toolkits.mplot3d import Axes3D
-
-import seaborn as sns
 
 for x in branin_x.create_generator()():
     for y in branin_y.create_generator()():

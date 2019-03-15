@@ -5,11 +5,11 @@ import time
 
 class AbstractHyperParameterOptimizer(ABC):
     name = "abstract"
-    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, verbose: int=1,
+    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable=None, verbose: int=1,
                  should_call_eval_fn=True, random_seed=None):
         self.hyper_param_list = hyper_param_list
         self.eval_fn = eval_fn
-        self.callback_fn = callback_fn
+        self.callback_fn = callback_fn if callback_fn is not None else lambda: None
         self.params_to_results_dict = {}
         self.eval_fn_per_timestep = []
         self.hyperparameter_set_per_timestep = []
@@ -43,12 +43,13 @@ class AbstractHyperParameterOptimizer(ABC):
             self._on_optimizer_step_done(self.hyperparameter_set_per_timestep[-1], self.eval_fn_per_timestep[-1])
             self._on_pre_hyp_opt_step()
         self._on_optimizer_done()
-        print("======")
         sorted_results = sorted(self.params_to_results_dict.items(), key=lambda kv: kv[1], reverse=True)
-        print(len(sorted_results))
-        for k, v in sorted_results[0:10]:
-            print("{0}: {1}".format(k, v))
-        print("======")
+        if self.verbose == 1:
+            print("======")
+            print(len(sorted_results))
+            for k, v in sorted_results[0:10]:
+                print("{0}: {1}".format(k, v))
+            print("======")
         return sorted_results
 
     def _add_sampled_point(self, hyperparameter_set: dict, eval_metric: float):

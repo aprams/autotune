@@ -2,8 +2,8 @@ import random
 import numpy as np
 from optimizers import tpe_search
 
-from test.test_data import sample_params, sample_eval_fn, sample_callback_fn, example_2d_params, example_2d_eval_fn
-from .utils import save_plotted_progress
+from test.test_data import sample_params, sample_eval_fn, sample_callback_fn
+
 
 def test_tpe_search(n_iterations=100):
     print("-" * 53)

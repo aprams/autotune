@@ -8,6 +8,8 @@ param3 = Conditional('c', cond_var=param1,
                       (lambda param: param <= 1, 2)])
 """
 
+from hyperopt.pyll.base import Literal
+from hyperopt import pyll
 from hyperopt import hp, fmin, tpe
 from optimizers.tpe_search import TPEOptimizer
 space = hp.choice('classifier_type', [
@@ -30,6 +32,32 @@ space = hp.choice('classifier_type', [
         'min_samples_split': hp.qlognormal('dtree_min_samples_split', 2, 1, 1),
     },
     ])
+
+
+space = {
+    'a' : hp.quniform('a', 0, 1, 1)
+}
+import numpy as np
+n_samples = 500
+for title, space in space.items():
+    evaluated = [
+        pyll.stochastic.sample(space) for _ in range(n_samples)
+    ]
+    x_domain = np.linspace(min(evaluated), max(evaluated), n_samples)
+print(x_domain)
+exit()
+print(space.__dict__.items())
+print('-------')
+for x in vars(space)['pos_args']:
+    #print(x)
+    #print(vars(x))
+    print(x.__dict__.items())
+    for y in x.named_args:
+        print(y[0])
+        if y[0] == 'C':
+            print(dir(y[0]))
+        #print(y[1].eval() if type(y[1]) is not Literal else y[1])#.__dict__.items())
+exit()
 
 def objective(args):
     print(args)

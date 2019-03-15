@@ -6,7 +6,7 @@ from bayes_opt import BayesianOptimization
 
 class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
     name = "GP"
-    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, verbose: int = 1,
+    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable=None, verbose: int = 1,
                  n_iterations=50, n_init_points=5, random_seed=None, gp_n_warmup=100000, gp_n_iter=25, **gp_params):
         self.n_iterations = n_iterations
         self.n_init_points = n_init_points
@@ -68,10 +68,11 @@ class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
             self._on_pre_hyp_opt_step()
 
         self._on_optimizer_done()
-        print("======")
         sorted_results = sorted(self.params_to_results_dict.items(), key=lambda kv: kv[1], reverse=True)
-        print(len(sorted_results))
-        for k, v in sorted_results[0:10]:
-            print("{0}: {1}".format(k, v))
-        print("======")
+        if self.verbose == 1:
+            print("======")
+            print(len(sorted_results))
+            for k, v in sorted_results[0:10]:
+                print("{0}: {1}".format(k, v))
+            print("======")
         return sorted_results

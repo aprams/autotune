@@ -7,7 +7,7 @@ from param_space import Param
 class GridSearchOptimizer(AbstractHyperParameterOptimizer):
     name = "GridSearch"
 
-    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable, n_iterations=None):
+    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable=None, n_iterations=None):
         super().__init__(hyper_param_list, eval_fn, callback_fn, random_seed=None)
         self.name = "GridSearch"
 
@@ -39,6 +39,7 @@ class GridSearchOptimizer(AbstractHyperParameterOptimizer):
 
         def generator() -> Param:
             for x in hyperparam_combinations:
+                print(x)
                 yield x
 
         return generator
