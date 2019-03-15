@@ -72,8 +72,8 @@ print("Combined parameter space")
 for p in classifier_combined_spaces:
     print(p.name, p.space)
 
-n_datasets = 2 # 42
-n_repititions_per_optimizer = 2 # 10
+n_datasets = 10 # 42
+n_repititions_per_optimizer = 3 # 10
 optimizer_steps = 10 # 100
 optimizer_results = {}
 
@@ -153,7 +153,6 @@ for optimizer in optimizers:
         tmp_agg_results = []
         for i in range(n_repititions_per_optimizer):
             def eval_fn(params):
-                print("Params: ", params)
                 modified_params = dict(params)
                 final_params = {}
                 classifier_idx = params['classifier']
@@ -203,7 +202,6 @@ for optimizer in optimizers:
             else:
                 tmp_opt = optimizer(classifier_combined_spaces, eval_fn, #callback_fn=sample_callback_fn,
                                     n_iterations=optimizer_steps, random_seed=i, verbose=0)
-            print(classifier_combined_spaces)
             _ = tmp_opt.maximize()
             tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                    tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
