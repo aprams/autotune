@@ -1,1 +1,8 @@
 experiment_results/ filter=lfs diff=lfs merge=lfs -text
+hpo_dataset/configurations.yml filter=lfs diff=lfs merge=lfs -text
+hpo_dataset/params.pcs filter=lfs diff=lfs merge=lfs -text
+hpo_dataset/results.yml filter=lfs diff=lfs merge=lfs -text
+hpo_dataset/space.py filter=lfs diff=lfs merge=lfs -text
+hpo_dataset/ filter=lfs diff=lfs merge=lfs -text
+hpo_dataset/preprocessed_data.pickle filter=lfs diff=lfs merge=lfs -text
+hpo_dataset/preprocessed_param_values.pickle filter=lfs diff=lfs merge=lfs -text
