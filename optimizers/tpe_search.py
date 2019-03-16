@@ -3,6 +3,7 @@ from typing import Callable
 
 from .hyper_param_opt import AbstractHyperParameterOptimizer
 from hyperopt import tpe, Trials, fmin, hp
+import numpy as np
 
 class TPEOptimizer(AbstractHyperParameterOptimizer):
     name = "TPE"
@@ -14,6 +15,7 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
         self.tpe_space = self._create_tpe_space_from_param_space(hyper_param_list) if not is_hpo_space else hyper_param_list
         self.is_hpo_space = is_hpo_space
         self.name = "TPE"
+        self.random_state = np.random.RandomState(random_seed)
 
     def transform_raw_param_samples(self, pop):
         #print("TPE params:", pop.keys())
@@ -44,8 +46,9 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
             # Optimize
             for i in range(self.n_iterations):
                 fn = lambda params: -self.eval_fn(self.transform_raw_param_samples(params)) if not self.is_hpo_space else lambda params: -self.eval_fn(params)
-                fmin(fn=lambda params: -self.eval_fn(params),
-                     space=self.tpe_space, algo=tpe.suggest, max_evals=i + 1, trials=bayes_trials)
+                fmin(fn=fn,
+                     space=self.tpe_space, algo=tpe.suggest, max_evals=i + 1, trials=bayes_trials,
+                     rstate=self.random_state)
                 yield {x: bayes_trials.vals[x][-1] for x in bayes_trials.vals.keys() if i in bayes_trials.idxs[x]}, -bayes_trials.results[-1]['loss']
         return tpe_generator
 
