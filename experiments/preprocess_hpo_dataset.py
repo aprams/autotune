@@ -21,8 +21,6 @@ if __name__ == '__main__':
     # Load and clean results
     with open("../hpo_dataset/results.yml", 'r') as stream:
         hpo_results = yaml.load(stream)
-        print(type(hpo_results[2][772]))
-        print(hpo_results[2][772])
         cleaned_hpo_results = {}
         # clean results as there are nan's and shorter ones
         for k in hpo_results.keys():
