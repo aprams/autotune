@@ -46,9 +46,15 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
             # Optimize
             for i in range(self.n_iterations):
                 fn = lambda params: -self.eval_fn(self.transform_raw_param_samples(params)) if not self.is_hpo_space else lambda params: -self.eval_fn(params)
-                fmin(fn=fn,
-                     space=self.tpe_space, algo=tpe.suggest, max_evals=i + 1, trials=bayes_trials,
+                fmin(fn=lambda params: -self.eval_fn(params),
+                     space=self.tpe_space, algo=tpe.suggest, max_evals=i + 1,
+                     trials=bayes_trials,
                      rstate=self.random_state)
+                #print([min(x['loss'][:i]) for i, x in zip(range(len(bayes_trials.results)), bayes_trials.results)])
+                #import matplotlib.pyplot as plt
+                #plt.plot(bayes_trials.results['loss'])
+                #plt.plot([min([y['loss'] for y in bayes_trials.results[:i + 1]]) for i, x in zip(range(len(bayes_trials.results)), bayes_trials.results)])
+                #plt.show()
                 yield {x: bayes_trials.vals[x][-1] for x in bayes_trials.vals.keys() if i in bayes_trials.idxs[x]}, -bayes_trials.results[-1]['loss']
         return tpe_generator
 

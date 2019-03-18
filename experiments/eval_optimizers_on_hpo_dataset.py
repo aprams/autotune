@@ -6,6 +6,10 @@ from hyperopt.pyll import scope
 from hyperopt import hp, fmin, tpe
 from utils import get_loss_ranges_per_classifier_dataset
 import param_space
+import functools
+
+def random_seed_fn(i):
+    return i
 
 optimizers = [random_search.RandomSearchOptimizer, tpe_search.TPEOptimizer,# gp_search.GaussianProcessOptimizer,
                ga_search.GeneticAlgorithmSearch,
@@ -73,9 +77,12 @@ for p in classifier_combined_spaces:
     print(p.name, p.space)
 
 n_datasets = 10 # 42
-n_repititions_per_optimizer = 3 # 10
-optimizer_steps = 10 # 100
+n_repititions_per_optimizer = 10 # 10
+optimizer_steps = 50 # 100
 optimizer_results = {}
+tpe_startup_jobs = 5
+tpe.suggest = functools.partial(tpe.suggest, n_startup_jobs=tpe_startup_jobs)
+
 
 loss_ranges_per_classifier_dataset = get_loss_ranges_per_classifier_dataset(classifier_indexed_params, max_n_datasets=n_datasets)
 
@@ -130,10 +137,10 @@ for optimizer in optimizers:
 
                 if optimizer == tpe_search.TPEOptimizer:
                     tmp_opt = optimizer(tpe_spaces[classifier], tpe_eval_fn, #callback_fn=sample_callback_fn,
-                                        n_iterations=optimizer_steps, random_seed=i, verbose=0)
+                                        n_iterations=optimizer_steps, random_seed=random_seed_fn(i), verbose=0)
                 else:
                     tmp_opt = optimizer(classifier_param_spaces[classifier], eval_fn, #callback_fn=sample_callback_fn,
-                                        n_iterations=optimizer_steps, random_seed=i, verbose=0)
+                                        n_iterations=optimizer_steps, random_seed=random_seed_fn(i), verbose=0)
 
                 _ = tmp_opt.maximize()
                 tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
@@ -143,7 +150,6 @@ for optimizer in optimizers:
 
 
 # Combined classifier and param search
-
 combined_optimizer_results = {}
 for optimizer in optimizers:
     print("=" * 46)
@@ -198,10 +204,10 @@ for optimizer in optimizers:
 
             if optimizer == tpe_search.TPEOptimizer:
                 tmp_opt = optimizer(tpe_combined_spaces, tpe_eval_fn, #callback_fn=sample_callback_fn,
-                                    n_iterations=optimizer_steps, random_seed=i, verbose=0)
+                                    n_iterations=optimizer_steps, random_seed=random_seed_fn(i), verbose=0)
             else:
                 tmp_opt = optimizer(classifier_combined_spaces, eval_fn, #callback_fn=sample_callback_fn,
-                                    n_iterations=optimizer_steps, random_seed=i, verbose=0)
+                                    n_iterations=optimizer_steps, random_seed=random_seed_fn(i), verbose=0)
             _ = tmp_opt.maximize()
             tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                    tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
