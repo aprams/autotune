@@ -76,7 +76,7 @@ print("Combined parameter space")
 for p in classifier_combined_spaces:
     print(p.name, p.space)
 
-n_datasets = 10 # 42
+n_datasets = 42 # 42
 n_repititions_per_optimizer = 10 # 10
 optimizer_steps = 50 # 100
 optimizer_results = {}
@@ -175,7 +175,6 @@ for optimizer in optimizers:
                 return -classifier_indexed_params[classifier][frozenset(final_params.items())][dataset_idx]
 
             def tpe_eval_fn(tpe_params):
-                #print("TPE PARAMS: ", tpe_params)
                 params = {}
                 for k in tpe_params:
                     if type(tpe_params[k]) == int:
@@ -193,13 +192,10 @@ for optimizer in optimizers:
                         raise Exception('unhandled type')
                 classifier = params['classifier']
                 del params['classifier']
-                #print(params)
                 loss = -classifier_indexed_params[classifier][frozenset(params.items())][dataset_idx]
-                #print("TPE params {0} yielded a loss of {1}".format(params, loss))
                 return loss
 
             def sample_callback_fn(**params):
-                #print(params)
                 pass
 
             if optimizer == tpe_search.TPEOptimizer:
