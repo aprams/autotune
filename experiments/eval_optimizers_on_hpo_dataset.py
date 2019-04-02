@@ -7,6 +7,9 @@ from hyperopt import hp, fmin, tpe
 from utils import get_loss_ranges_per_classifier_dataset
 import param_space
 import functools
+import config
+import os
+
 
 def random_seed_fn(i):
     return i
@@ -49,10 +52,10 @@ tpe_spaces = {x: {x:classifiers_params[x],
                   } for x in classifiers_params.keys()}
 
 # Load preprocessed data dicts
-with open('../hpo_dataset/preprocessed_data.pickle', 'rb') as handle:
+with open(os.path.join(config.HPO_FOLDER, 'preprocessed_data.pickle'), 'rb') as handle:
     classifier_indexed_params = pickle.load(handle)
 
-with open('../hpo_dataset/preprocessed_param_values.pickle', 'rb') as handle:
+with open(os.path.join(config.HPO_FOLDER, 'preprocessed_param_values.pickle'), 'rb') as handle:
     classifier_param_values = pickle.load(handle)
 
 classifier_param_spaces = {}
@@ -76,7 +79,7 @@ print("Combined parameter space")
 for p in classifier_combined_spaces:
     print(p.name, p.space)
 
-n_datasets = 42 # 42
+n_datasets = 3 # 42
 n_repititions_per_optimizer = 10 # 10
 optimizer_steps = 50 # 100
 optimizer_results = {}
