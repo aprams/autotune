@@ -3,7 +3,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import pickle
 import numpy as np
-from ..optimizers import grid_search, random_search, ga_search, gp_search, tpe_search
+from optimizers import grid_search, random_search, ga_search, gp_search, tpe_search
 from preprocess_hpo_dataset import create_index_param_space
 from hyperopt.pyll import scope
 from hyperopt import hp, fmin, tpe
