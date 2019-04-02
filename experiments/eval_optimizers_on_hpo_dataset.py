@@ -14,7 +14,7 @@ import os
 def random_seed_fn(i):
     return i
 
-optimizers = [random_search.RandomSearchOptimizer, tpe_search.TPEOptimizer,# gp_search.GaussianProcessOptimizer,
+optimizers = [random_search.RandomSearchOptimizer, tpe_search.TPEOptimizer, gp_search.GaussianProcessOptimizer,
                ga_search.GeneticAlgorithmSearch,
              ]#grid_search.GridSearchOptimizer ]
 
