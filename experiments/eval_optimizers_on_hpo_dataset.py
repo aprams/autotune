@@ -89,9 +89,9 @@ print("Combined parameter space")
 for p in classifier_combined_spaces:
     print(p.name, p.space)
 
-N_DATASETS = 42  # 42
-N_REPS_PER_OPTIMIZER = 10  # 10
-N_OPT_STEPS = 60  # 100
+N_DATASETS = 3  # 42
+N_REPS_PER_OPTIMIZER = 3  # 10
+N_OPT_STEPS = 16  # 100
 optimizer_results = {}
 
 loss_ranges_per_classifier_dataset = get_loss_ranges_per_classifier_dataset(classifier_indexed_params, max_n_datasets=N_DATASETS)
@@ -109,16 +109,9 @@ for i in range(N_REPS_PER_OPTIMIZER):
             print("Evaluating classifier", classifier)
             if i == 0:
                 optimizer_results[opt_name][classifier] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
-            for dataset_idx in range(N_DATASETS):
-                def eval_fn(params):
-                    modified_params = dict(params)
-                    if modified_params['preprocessing'] == 0:
-                        del modified_params['pca:keep_variance']
-                    # minimize val error
-                    return -classifier_indexed_params[classifier][frozenset(modified_params.items())][dataset_idx]
 
-                def tpe_eval_fn(tpe_params):
-                    #print("TPE PARAMS: ", tpe_params)
+            for dataset_idx in range(N_DATASETS):
+                def eval_fn(tpe_params):
                     params = {}
                     for k in tpe_params:
                         if type(tpe_params[k]) == int:
@@ -134,20 +127,22 @@ for i in range(N_REPS_PER_OPTIMIZER):
                                     params[x] = tpe_params[k][x]
                         else:
                             raise Exception('unhandled type')
-                    del params['classifier']
+                    if 'classifier' in params:
+                        del params['classifier']
+
+                    if params['preprocessing'] == 0 and 'pca:keep_variance' in params:
+                        del params['pca:keep_variance']
                     #print(params)
                     loss = -classifier_indexed_params[classifier][frozenset(params.items())][dataset_idx]
                     #print("TPE params {0} yielded a loss of {1}".format(params, loss))
                     return loss
 
-                def sample_callback_fn(**params):
-                    pass
 
                 if optimizer == tpe_search.TPEOptimizer:
-                    tmp_opt = optimizer(tpe_spaces[classifier], tpe_eval_fn,  #callback_fn=sample_callback_fn,
+                    tmp_opt = optimizer(tpe_spaces[classifier], eval_fn,
                                         n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
                 else:
-                    tmp_opt = optimizer(classifier_param_spaces[classifier], eval_fn,  #callback_fn=sample_callback_fn,
+                    tmp_opt = optimizer(classifier_param_spaces[classifier], eval_fn,
                                         n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
 
                 _ = tmp_opt.maximize()
@@ -172,23 +167,7 @@ for i in range(N_REPS_PER_OPTIMIZER):
             combined_optimizer_results[opt_name] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
 
         for dataset_idx in range(N_DATASETS):
-            def eval_fn(params):
-                modified_params = dict(params)
-                final_params = {}
-                classifier_idx = params['classifier']
-                classifier = classifiers[classifier_idx]
-                if modified_params['preprocessing'] == 0:
-                    del modified_params['pca:keep_variance']
-                for k in modified_params:
-                    is_valid_key_for_classifier = str.startswith(k, classifier) or str.startswith(k, 'preprocessing') \
-                                                  or str.startswith(k, 'pca')
-                    if is_valid_key_for_classifier:
-                        final_params[k] = modified_params[k]
-
-                # minimize val error
-                return -classifier_indexed_params[classifier][frozenset(final_params.items())][dataset_idx]
-
-            def tpe_eval_fn(tpe_params):
+            def eval_fn(tpe_params):
                 params = {}
                 for k in tpe_params:
                     if type(tpe_params[k]) == int:
@@ -206,17 +185,27 @@ for i in range(N_REPS_PER_OPTIMIZER):
                         raise Exception('unhandled type')
                 classifier = params['classifier']
                 del params['classifier']
+                if type(classifier) is int:
+                    classifier = classifiers[classifier]
+                final_params = {}
+                for k in params:
+                    is_valid_key_for_classifier = str.startswith(k, classifier) or str.startswith(k, 'preprocessing') \
+                                                  or str.startswith(k, 'pca')
+                    if is_valid_key_for_classifier:
+                        final_params[k] = params[k]
+                params = final_params
+
+                if params['preprocessing'] == 0 and 'pca:keep_variance' in params:
+                    del params['pca:keep_variance']
+
                 loss = -classifier_indexed_params[classifier][frozenset(params.items())][dataset_idx]
                 return loss
 
-            def sample_callback_fn(**params):
-                pass
-
             if optimizer == tpe_search.TPEOptimizer:
-                tmp_opt = optimizer(tpe_combined_spaces, tpe_eval_fn,  #callback_fn=sample_callback_fn,
+                tmp_opt = optimizer(tpe_combined_spaces, eval_fn,
                                     n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
             else:
-                tmp_opt = optimizer(classifier_combined_spaces, eval_fn,  #callback_fn=sample_callback_fn,
+                tmp_opt = optimizer(classifier_combined_spaces, eval_fn,
                                     n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
             _ = tmp_opt.maximize()
             tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
@@ -234,7 +223,6 @@ optimizer_results['meta']['loss_ranges'] = loss_ranges_per_classifier_dataset
 with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'hpo_dataset_optimizer_results.pickle'), 'wb') as handle:
     pickle.dump(optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'combined_hpo_dataset_optimizer_results.pickle',
-                  'wb')) as handle:
+with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'combined_hpo_dataset_optimizer_results.pickle'),
+                  'wb') as handle:
     pickle.dump(combined_optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
