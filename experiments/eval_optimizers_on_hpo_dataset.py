@@ -155,7 +155,8 @@ for i in range(N_REPS_PER_OPTIMIZER):
                                        tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
                 optimizer_results[opt_name][classifier][dataset_idx][i] = tmp_results
 
-    with open('../experiment_results/hpo_dataset_optimizer_results_{0}.pickle'.format(i), 'wb') as handle:
+    with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'hpo_dataset_optimizer_results_{0}.pickle'.format(i)),
+              'wb') as handle:
         pickle.dump(optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
@@ -221,18 +222,19 @@ for i in range(N_REPS_PER_OPTIMIZER):
             tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                    tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
             combined_optimizer_results[opt_name][dataset_idx][i] = tmp_results
-    with open('../experiment_results/combined_hpo_dataset_optimizer_results_{0}.pickle'.format(i), 'wb') as handle:
-        pickle.dump(combined_optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'combined_hpo_dataset_optimizer_results_{0}.pickle'.format(i)),
+                  'wb') as handle:
+            pickle.dump(combined_optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 
 optimizer_results['meta'] = {}
 optimizer_results['meta']['loss_ranges'] = loss_ranges_per_classifier_dataset
 
-with open('../experiment_results/hpo_dataset_optimizer_results.pickle', 'wb') as handle:
+with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'hpo_dataset_optimizer_results.pickle'), 'wb') as handle:
     pickle.dump(optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-
-with open('../experiment_results/combined_hpo_dataset_optimizer_results.pickle', 'wb') as handle:
+with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'combined_hpo_dataset_optimizer_results.pickle',
+                  'wb')) as handle:
     pickle.dump(combined_optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
