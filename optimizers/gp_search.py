@@ -7,7 +7,8 @@ from bayes_opt import BayesianOptimization
 class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
     name = "GP"
     def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable=None, verbose: int = 1,
-                 n_iterations=50, n_init_points=5, random_seed=None, gp_n_warmup=100000, gp_n_iter=25, **gp_params):
+                 n_iterations=50, n_init_points=5, random_seed=None, gp_n_warmup=100000, gp_n_iter=25,
+                 name="GP", **gp_params):
         self.n_iterations = n_iterations
         self.n_init_points = n_init_points
         super().__init__(hyper_param_list, eval_fn, callback_fn, verbose)
@@ -22,7 +23,7 @@ class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
         self.bo._acqkw = {'n_warmup': gp_n_warmup, 'n_iter': gp_n_iter}
         self.gp_params = gp_params if gp_params is not None else {"alpha": 1e-3, "n_restarts_optimizer": 5}
 
-        self.name = "GP"
+        self.name = name
 
     def transform_raw_param_samples(self, pop):
         param_dict = {}

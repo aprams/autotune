@@ -1,3 +1,4 @@
+import functools
 from param_space import Param, Real, Integer, Bool
 from typing import Callable
 
@@ -8,14 +9,16 @@ import numpy as np
 class TPEOptimizer(AbstractHyperParameterOptimizer):
     name = "TPE"
     def __init__(self, hyper_param_list, eval_fn: Callable, callback_fn: Callable=None, verbose: int = 1,
-                 n_iterations=50, random_seed=None):
+                 n_iterations=50, random_seed=None, n_startup_jobs=5, n_EI_candidates=24, name="TPE"):
         self.n_iterations = n_iterations
         super().__init__(hyper_param_list, eval_fn, callback_fn, verbose, should_call_eval_fn=False)
         is_hpo_space = False if type(hyper_param_list) is list else True
         self.tpe_space = self._create_tpe_space_from_param_space(hyper_param_list) if not is_hpo_space else hyper_param_list
         self.is_hpo_space = is_hpo_space
-        self.name = "TPE"
+        self.name = name
         self.random_state = np.random.RandomState(random_seed)
+
+        tpe.suggest = functools.partial(tpe.suggest, n_startup_jobs=n_startup_jobs, n_EI_candidates=n_EI_candidates)
 
     def transform_raw_param_samples(self, pop):
         #print("TPE params:", pop.keys())
@@ -43,6 +46,8 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
     def _create_hyperparam_set_generator(self):
         def tpe_generator():
             bayes_trials = Trials()
+            # TODO: Remove
+            self.trials = bayes_trials
             # Optimize
             for i in range(self.n_iterations):
                 fn = lambda params: -self.eval_fn(self.transform_raw_param_samples(params)) if not self.is_hpo_space else lambda params: -self.eval_fn(params)
@@ -56,6 +61,7 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
                 #plt.plot([min([y['loss'] for y in bayes_trials.results[:i + 1]]) for i, x in zip(range(len(bayes_trials.results)), bayes_trials.results)])
                 #plt.show()
                 yield {x: bayes_trials.vals[x][-1] for x in bayes_trials.vals.keys() if i in bayes_trials.idxs[x]}, -bayes_trials.results[-1]['loss']
+
         return tpe_generator
 
     def maximize(self) -> dict:

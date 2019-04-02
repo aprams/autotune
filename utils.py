@@ -132,7 +132,7 @@ def get_loss_ranges_per_classifier_dataset(losses, max_n_datasets=None):
     Extracts minimum and maximum losses per dataset and classifier
     :param losses: dict of [classifier][parameters:frozenset][dataset_idx] mapping to a float loss
     :param max_n_datasets: max number of datasets to look at
-    :return: dict [classifier] mapping to numpy array of shape [n_datasets, 2] with the last dimension being (min_val,
+    :return: dict [classifier] mapping to numpy array of shape [N_DATASETS, 2] with the last dimension being (min_val,
     max_val)
     """
     loss_ranges = {}

@@ -6,7 +6,7 @@ import time
 class AbstractHyperParameterOptimizer(ABC):
     name = "abstract"
     def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable=None, verbose: int=1,
-                 should_call_eval_fn=True, random_seed=None):
+                 should_call_eval_fn=True, random_seed=None, name="abstract"):
         self.hyper_param_list = hyper_param_list
         self.eval_fn = eval_fn
         self.callback_fn = callback_fn if callback_fn is not None else lambda: None
@@ -16,7 +16,7 @@ class AbstractHyperParameterOptimizer(ABC):
         self.cpu_time_per_opt_timestep = []
         self.wall_time_per_opt_timestep = []
         self.verbose = verbose
-        self.name = "abstract"
+        self.name = name
         self.should_call_eval_fn = should_call_eval_fn
 
         self.last_wall_time = None

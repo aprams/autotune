@@ -14,9 +14,16 @@ import os
 def random_seed_fn(i):
     return i
 
-optimizers = [random_search.RandomSearchOptimizer, tpe_search.TPEOptimizer, gp_search.GaussianProcessOptimizer,
-               ga_search.GeneticAlgorithmSearch,
-             ]#grid_search.GridSearchOptimizer ]
+
+opt_and_params = [(random_search.RandomSearchOptimizer, {}),
+                  (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 5, 'name': 'TPE_short'}),
+                  (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'name': 'TPE'}),
+                  (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 50, 'name': 'TPE_long'}),
+                  (gp_search.GaussianProcessOptimizer, {'gp_n_iter': 25, 'name': 'GP_short'}),
+                  #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 100, 'name': 'GP_medium'}),
+                  #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 250, 'name': 'GP_long'}),
+                  (ga_search.GeneticAlgorithmSearch, {}),
+                  ]#(grid_search.GridSearchOptimizer, {) ]
 
 pca = {'preprocessing': 1, 'pca:keep_variance':
     hp.quniform('pca:keep_variance', 0, 1, 1)} #2
@@ -79,35 +86,28 @@ print("Combined parameter space")
 for p in classifier_combined_spaces:
     print(p.name, p.space)
 
-n_datasets = 3 # 42
-n_repititions_per_optimizer = 10 # 10
-optimizer_steps = 50 # 100
+N_DATASETS = 2  # 42
+N_REPS_PER_OPTIMIZER = 2  # 10
+N_OPT_STEPS = 6  # 100
 optimizer_results = {}
-tpe_startup_jobs = 5
-tpe.suggest = functools.partial(tpe.suggest, n_startup_jobs=tpe_startup_jobs)
 
-
-loss_ranges_per_classifier_dataset = get_loss_ranges_per_classifier_dataset(classifier_indexed_params, max_n_datasets=n_datasets)
+loss_ranges_per_classifier_dataset = get_loss_ranges_per_classifier_dataset(classifier_indexed_params, max_n_datasets=N_DATASETS)
 
 # per classifier tests
-for optimizer in optimizers:
+for optimizer, opt_params in opt_and_params:
     print("=" * 46)
-    print("Evaluating optimizer", optimizer)
+    print("Evaluating optimizer", optimizer, "with params", opt_params)
     optimizer_results[optimizer.name] = {}
     for classifier in classifier_indexed_params.keys():
         print("Evaluating classifier", classifier)
         optimizer_results[optimizer.name][classifier] = []
-        for dataset_idx in range(n_datasets):
+        for dataset_idx in range(N_DATASETS):
             tmp_agg_results = []
-            for i in range(n_repititions_per_optimizer):
+            for i in range(N_REPS_PER_OPTIMIZER):
                 def eval_fn(params):
                     modified_params = dict(params)
                     if modified_params['preprocessing'] == 0:
                         del modified_params['pca:keep_variance']
-                    if optimizer == tpe_search.TPEOptimizer:
-                        for k in modified_params:
-                            print(k, modified_params[k])
-                            modified_params[k] = round(modified_params[k])
                     # minimize val error
                     return -classifier_indexed_params[classifier][frozenset(modified_params.items())][dataset_idx]
 
@@ -135,15 +135,14 @@ for optimizer in optimizers:
                     return loss
 
                 def sample_callback_fn(**params):
-                    #print(params)
                     pass
 
                 if optimizer == tpe_search.TPEOptimizer:
-                    tmp_opt = optimizer(tpe_spaces[classifier], tpe_eval_fn, #callback_fn=sample_callback_fn,
-                                        n_iterations=optimizer_steps, random_seed=random_seed_fn(i), verbose=0)
+                    tmp_opt = optimizer(tpe_spaces[classifier], tpe_eval_fn,  #callback_fn=sample_callback_fn,
+                                        n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
                 else:
-                    tmp_opt = optimizer(classifier_param_spaces[classifier], eval_fn, #callback_fn=sample_callback_fn,
-                                        n_iterations=optimizer_steps, random_seed=random_seed_fn(i), verbose=0)
+                    tmp_opt = optimizer(classifier_param_spaces[classifier], eval_fn,  #callback_fn=sample_callback_fn,
+                                        n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
 
                 _ = tmp_opt.maximize()
                 tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
@@ -154,13 +153,13 @@ for optimizer in optimizers:
 
 # Combined classifier and param search
 combined_optimizer_results = {}
-for optimizer in optimizers:
+for optimizer, opt_params in opt_and_params:
     print("=" * 46)
-    print("Evaluating optimizer", optimizer)
+    print("Evaluating optimizer", optimizer, "with params", opt_params)
     combined_optimizer_results[optimizer.name] = []
-    for dataset_idx in range(n_datasets):
+    for dataset_idx in range(N_DATASETS):
         tmp_agg_results = []
-        for i in range(n_repititions_per_optimizer):
+        for i in range(N_REPS_PER_OPTIMIZER):
             def eval_fn(params):
                 modified_params = dict(params)
                 final_params = {}
@@ -202,11 +201,11 @@ for optimizer in optimizers:
                 pass
 
             if optimizer == tpe_search.TPEOptimizer:
-                tmp_opt = optimizer(tpe_combined_spaces, tpe_eval_fn, #callback_fn=sample_callback_fn,
-                                    n_iterations=optimizer_steps, random_seed=random_seed_fn(i), verbose=0)
+                tmp_opt = optimizer(tpe_combined_spaces, tpe_eval_fn,  #callback_fn=sample_callback_fn,
+                                    n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
             else:
-                tmp_opt = optimizer(classifier_combined_spaces, eval_fn, #callback_fn=sample_callback_fn,
-                                    n_iterations=optimizer_steps, random_seed=random_seed_fn(i), verbose=0)
+                tmp_opt = optimizer(classifier_combined_spaces, eval_fn,  #callback_fn=sample_callback_fn,
+                                    n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
             _ = tmp_opt.maximize()
             tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                    tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))

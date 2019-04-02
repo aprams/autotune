@@ -17,4 +17,3 @@ def test_random_search(n_iterations=1000):
     assert(results[0][1] >= 10.19)
 
     return optimizer
-
