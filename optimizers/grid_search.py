@@ -40,7 +40,6 @@ class GridSearchOptimizer(AbstractHyperParameterOptimizer):
 
         def generator() -> Param:
             for x in hyperparam_combinations:
-                print(x)
                 yield x
 
         return generator
