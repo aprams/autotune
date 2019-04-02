@@ -1,6 +1,9 @@
+import sys, os
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
 import pickle
 import numpy as np
-from optimizers import grid_search, random_search, ga_search, gp_search, tpe_search
+from ..optimizers import grid_search, random_search, ga_search, gp_search, tpe_search
 from preprocess_hpo_dataset import create_index_param_space
 from hyperopt.pyll import scope
 from hyperopt import hp, fmin, tpe
@@ -152,6 +155,9 @@ for i in range(N_REPS_PER_OPTIMIZER):
                                        tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
                 optimizer_results[opt_name][classifier][dataset_idx][i] = tmp_results
 
+    with open('../experiment_results/hpo_dataset_optimizer_results_{0}.pickle'.format(i), 'wb') as handle:
+        pickle.dump(optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 
 # Combined classifier and param search
 combined_optimizer_results = {}
@@ -215,6 +221,9 @@ for i in range(N_REPS_PER_OPTIMIZER):
             tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                    tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
             combined_optimizer_results[opt_name][dataset_idx][i] = tmp_results
+    with open('../experiment_results/combined_hpo_dataset_optimizer_results_{0}.pickle'.format(i), 'wb') as handle:
+        pickle.dump(combined_optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 
 
 optimizer_results['meta'] = {}
