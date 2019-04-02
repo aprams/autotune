@@ -89,9 +89,9 @@ print("Combined parameter space")
 for p in classifier_combined_spaces:
     print(p.name, p.space)
 
-N_DATASETS = 3  # 42
-N_REPS_PER_OPTIMIZER = 3  # 10
-N_OPT_STEPS = 16  # 100
+N_DATASETS = 42  # 42
+N_REPS_PER_OPTIMIZER = 10  # 10
+N_OPT_STEPS = 60  # 100
 optimizer_results = {}
 
 loss_ranges_per_classifier_dataset = get_loss_ranges_per_classifier_dataset(classifier_indexed_params, max_n_datasets=N_DATASETS)
