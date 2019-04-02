@@ -16,7 +16,6 @@ from utils import gen_example_2d_plot, branin, save_plotted_progress
 def sample_callback_fn(params):
     pass
 
-
 branin_x = param_space.Real([-5, 10], name='x', n_points_to_sample=200)
 branin_y = param_space.Real([0, 15], name='y', n_points_to_sample=200)
 
