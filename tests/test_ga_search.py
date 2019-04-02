@@ -1,8 +1,8 @@
 import random
 import numpy as np
-from optimizers import ga_search
+from autotune.optimizers import ga_search
 
-from test.test_data import sample_params, sample_eval_fn, sample_callback_fn
+from tests.test_data import sample_params, sample_eval_fn, sample_callback_fn
 
 
 def test_ga_search(n_iterations=2000):

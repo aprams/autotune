@@ -1,7 +1,7 @@
 from typing import Callable
 
 from .hyper_param_opt import AbstractHyperParameterOptimizer
-from param_space import Param
+from autotune.param_space import Param
 
 
 class GridSearchOptimizer(AbstractHyperParameterOptimizer):

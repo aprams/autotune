@@ -2,14 +2,13 @@ import sys, os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import pickle
-import numpy as np
-from optimizers import grid_search, random_search, ga_search, gp_search, tpe_search
+from autotune.optimizers import ga_search, tpe_search
+from autotune.optimizers import random_search
 from preprocess_hpo_dataset import create_index_param_space
 from hyperopt.pyll import scope
-from hyperopt import hp, fmin, tpe
+from hyperopt import hp
 from utils import get_loss_ranges_per_classifier_dataset
-import param_space
-import functools
+from autotune import param_space
 import config
 import os
 
@@ -77,7 +76,8 @@ for k in classifier_indexed_params.keys():
     classifier_param_spaces[k] = param_list
 
 classifier_combined_spaces = []
-classifier_combined_spaces += [param_space.Integer(space=list(range(len(list(classifier_param_spaces.keys())))), name='classifier')]
+classifier_combined_spaces += [
+    param_space.Integer(space=list(range(len(list(classifier_param_spaces.keys())))), name='classifier')]
 list(classifier_param_spaces.keys())
 for c in classifier_param_spaces.keys():
     for p in classifier_param_spaces[c]:

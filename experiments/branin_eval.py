@@ -3,12 +3,12 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 
 import random
-import param_space
+from autotune import param_space
 import config
-from optimizers import grid_search, random_search, ga_search, gp_search, tpe_search
+from autotune.optimizers import grid_search, ga_search, gp_search, tpe_search
+from autotune.optimizers import random_search
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
 
 from utils import gen_example_2d_plot, branin, save_plotted_progress
 
@@ -108,7 +108,7 @@ def branin_tpe_search(n_iterations=2000, n_EI_candidates=24, name='TPE'):
     random.seed(0)
 
     optimizer = tpe_search.TPEOptimizer(branin_param_space, branin_eval_fn, callback_fn=sample_callback_fn,
-                                                   n_iterations=n_iterations, n_EI_candidates=n_EI_candidates,
+                                        n_iterations=n_iterations, n_EI_candidates=n_EI_candidates,
                                         name=name)
     _ = optimizer.maximize()
 

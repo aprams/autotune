@@ -108,3 +108,5 @@ plots/
 .idea/
 .DS_Store
 Visualization Test.ipynb
+*/.DS_STORE
+

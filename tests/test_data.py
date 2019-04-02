@@ -1,13 +1,13 @@
-import param_space
+from autotune import param_space
 
 bool_var = param_space.Bool(name='bool_var')
 bool_var_2 = param_space.Bool(name='bool_var_2')
 
 real_var = param_space.Real([-5, 5], name='real_var', n_points_to_sample=20)
-real_var_2 = param_space.Real([-5, 0], projection_fn=lambda x: 10**x, name='real_var_2', n_points_to_sample=20)
+real_var_2 = param_space.Real([-5, 0], projection_fn=lambda x: 10 ** x, name='real_var_2', n_points_to_sample=20)
 
 int_var = param_space.Integer([0, 1, 2], name='int_var')
-int_var_2 = param_space.Integer([0, 1, 2], projection_fn=lambda x: x**2, name='int_var_2')
+int_var_2 = param_space.Integer([0, 1, 2], projection_fn=lambda x: x ** 2, name='int_var_2')
 
 sample_params = [bool_var, bool_var_2, real_var, real_var_2, int_var, int_var_2]
 
@@ -20,8 +20,8 @@ def sample_callback_fn(**params):
     print(params)
 
 
-example_2d_x_var = param_space.Real([1, 5], name='x',  n_points_to_sample=5)
-example_2d_y_var = param_space.Real([1, 5], name='y',  n_points_to_sample=5)
+example_2d_x_var = param_space.Real([1, 5], name='x', n_points_to_sample=5)
+example_2d_y_var = param_space.Real([1, 5], name='y', n_points_to_sample=5)
 
 example_2d_params = [example_2d_x_var, example_2d_y_var]
 

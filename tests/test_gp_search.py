@@ -1,8 +1,8 @@
 import random
 import numpy as np
-from optimizers import gp_search
+from autotune.optimizers import gp_search
 
-from test.test_data import sample_params, sample_eval_fn, sample_callback_fn
+from tests.test_data import sample_params, sample_eval_fn, sample_callback_fn
 
 
 def test_gp_search(n_iterations=20, gp_n_warmup=100000, gp_n_iter=25, n_restarts_optimizer=5):

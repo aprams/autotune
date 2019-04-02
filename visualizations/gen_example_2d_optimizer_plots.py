@@ -1,8 +1,9 @@
 import random
 import numpy as np
-from optimizers import grid_search, random_search, ga_search, gp_search, tpe_search
+from autotune.optimizers import grid_search, ga_search, gp_search, tpe_search
+from autotune.optimizers import random_search
 
-from test.test_data import sample_callback_fn, example_2d_params, example_2d_eval_fn
+from tests.test_data import sample_callback_fn, example_2d_params, example_2d_eval_fn
 from utils import gen_example_2d_plot
 
 
@@ -66,7 +67,7 @@ def example_2d_tpe_search(n_iterations=2000):
     random.seed(0)
 
     optimizer = tpe_search.TPEOptimizer(example_2d_params, example_2d_eval_fn, callback_fn=sample_callback_fn,
-                                                   n_iterations=n_iterations)
+                                        n_iterations=n_iterations)
     _ = optimizer.maximize()
 
     return optimizer

@@ -1,8 +1,8 @@
 import random
 import numpy as np
-from optimizers import random_search
+from autotune.optimizers import random_search
 
-from test.test_data import sample_params, sample_eval_fn, sample_callback_fn
+from tests.test_data import sample_params, sample_eval_fn, sample_callback_fn
 
 
 def test_random_search(n_iterations=1000):

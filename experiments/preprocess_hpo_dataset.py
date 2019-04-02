@@ -1,6 +1,6 @@
 import yaml
 import math
-import param_space
+from autotune import param_space
 import pickle
 
 

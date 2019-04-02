@@ -1,4 +1,4 @@
-from param_space import Param, Real, Integer, Bool
+from autotune.param_space import Real, Integer, Bool
 from typing import Callable
 
 from .hyper_param_opt import AbstractHyperParameterOptimizer
@@ -7,12 +7,6 @@ from .hyper_param_opt import AbstractHyperParameterOptimizer
 import logging
 logging.basicConfig(level=logging.WARNING)
 
-import argparse
-
-import hpbandster.core.nameserver as hpns
-import hpbandster.core.result as hpres
-
-from hpbandster.optimizers import BOHB as BOHB
 from hpbandster.core import Worker
 import ConfigSpace as CS
 import ConfigSpace.hyperparameters as CSH

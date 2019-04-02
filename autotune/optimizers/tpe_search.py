@@ -1,5 +1,5 @@
 import functools
-from param_space import Param, Real, Integer, Bool
+from autotune.param_space import Real, Integer, Bool
 from typing import Callable
 
 from .hyper_param_opt import AbstractHyperParameterOptimizer

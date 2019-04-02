@@ -1,8 +1,8 @@
-from test.test_ga_search import test_ga_search
-from test.test_gp_search import test_gp_search
-from test.test_grid_search import test_grid_search
-from test.test_random_search import test_random_search
-from test.test_tpe_search import test_tpe_search
+from tests.test_ga_search import test_ga_search
+from tests.test_gp_search import test_gp_search
+from tests.test_grid_search import test_grid_search
+from tests.test_random_search import test_random_search
+from tests.test_tpe_search import test_tpe_search
 
 from utils import save_plotted_progress
 

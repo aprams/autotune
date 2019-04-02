@@ -1,6 +1,6 @@
-from optimizers import grid_search
+from autotune.optimizers import grid_search
 
-from test.test_data import sample_params, sample_eval_fn, sample_callback_fn
+from tests.test_data import sample_params, sample_eval_fn, sample_callback_fn
 
 
 def test_grid_search():
