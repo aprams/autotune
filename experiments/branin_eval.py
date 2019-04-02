@@ -1,11 +1,13 @@
+import sys, os
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+
 import random
 import param_space
 import config
 from optimizers import grid_search, random_search, ga_search, gp_search, tpe_search
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-
 from mpl_toolkits.mplot3d import Axes3D
 
 from utils import gen_example_2d_plot, branin, save_plotted_progress
