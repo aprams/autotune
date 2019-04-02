@@ -18,8 +18,8 @@ def random_seed_fn(i):
 opt_and_params = [(random_search.RandomSearchOptimizer, {}),
                   (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 5, 'name': 'TPE_short'}),
                   (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'name': 'TPE'}),
-                  (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 50, 'name': 'TPE_long'}),
-                  (gp_search.GaussianProcessOptimizer, {'gp_n_iter': 25, 'name': 'GP_short'}),
+                  #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 50, 'name': 'TPE_long'}),
+                  #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 25, 'name': 'GP_short'}),
                   #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 100, 'name': 'GP_medium'}),
                   #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 250, 'name': 'GP_long'}),
                   (ga_search.GeneticAlgorithmSearch, {}),
@@ -86,24 +86,27 @@ print("Combined parameter space")
 for p in classifier_combined_spaces:
     print(p.name, p.space)
 
-N_DATASETS = 2  # 42
-N_REPS_PER_OPTIMIZER = 2  # 10
-N_OPT_STEPS = 6  # 100
+N_DATASETS = 42  # 42
+N_REPS_PER_OPTIMIZER = 10  # 10
+N_OPT_STEPS = 60  # 100
 optimizer_results = {}
 
 loss_ranges_per_classifier_dataset = get_loss_ranges_per_classifier_dataset(classifier_indexed_params, max_n_datasets=N_DATASETS)
 
 # per classifier tests
-for optimizer, opt_params in opt_and_params:
+for i in range(N_REPS_PER_OPTIMIZER):
     print("=" * 46)
-    print("Evaluating optimizer", optimizer, "with params", opt_params)
-    optimizer_results[optimizer.name] = {}
-    for classifier in classifier_indexed_params.keys():
-        print("Evaluating classifier", classifier)
-        optimizer_results[optimizer.name][classifier] = []
-        for dataset_idx in range(N_DATASETS):
-            tmp_agg_results = []
-            for i in range(N_REPS_PER_OPTIMIZER):
+    print("REP ", i)
+    for optimizer, opt_params in opt_and_params:
+        print("Evaluating optimizer", optimizer, "with params", opt_params)
+        opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
+        if i == 0:
+            optimizer_results[opt_name] = {}
+        for classifier in classifier_indexed_params.keys():
+            print("Evaluating classifier", classifier)
+            if i == 0:
+                optimizer_results[opt_name][classifier] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
+            for dataset_idx in range(N_DATASETS):
                 def eval_fn(params):
                     modified_params = dict(params)
                     if modified_params['preprocessing'] == 0:
@@ -147,19 +150,21 @@ for optimizer, opt_params in opt_and_params:
                 _ = tmp_opt.maximize()
                 tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                        tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
-                tmp_agg_results += [tmp_results]
-            optimizer_results[optimizer.name][classifier] += [tmp_agg_results]
+                optimizer_results[opt_name][classifier][dataset_idx][i] = tmp_results
 
 
 # Combined classifier and param search
 combined_optimizer_results = {}
-for optimizer, opt_params in opt_and_params:
+for i in range(N_REPS_PER_OPTIMIZER):
     print("=" * 46)
-    print("Evaluating optimizer", optimizer, "with params", opt_params)
-    combined_optimizer_results[optimizer.name] = []
-    for dataset_idx in range(N_DATASETS):
-        tmp_agg_results = []
-        for i in range(N_REPS_PER_OPTIMIZER):
+    print("REP ", i)
+    for optimizer, opt_params in opt_and_params:
+        print("Evaluating optimizer", optimizer, "with params", opt_params)
+        opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
+        if i == 0:
+            combined_optimizer_results[opt_name] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
+
+        for dataset_idx in range(N_DATASETS):
             def eval_fn(params):
                 modified_params = dict(params)
                 final_params = {}
@@ -209,8 +214,7 @@ for optimizer, opt_params in opt_and_params:
             _ = tmp_opt.maximize()
             tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                    tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
-            tmp_agg_results += [tmp_results]
-        combined_optimizer_results[optimizer.name] += [tmp_agg_results]
+            combined_optimizer_results[opt_name][dataset_idx][i] = tmp_results
 
 
 optimizer_results['meta'] = {}
