@@ -1,7 +1,9 @@
 import yaml
 import math
-from autotune import param_space
 import pickle
+import os
+import config
+from autotune import param_space
 
 
 def create_index_param_space(param_value_dict):
@@ -15,11 +17,11 @@ def create_index_param_space(param_value_dict):
 
 if __name__ == '__main__':
     # Load configurations
-    with open("../hpo_dataset/configurations.yml", 'r') as stream:
+    with open(os.path.join(config.HPO_FOLDER, "configurations.yml"), 'r') as stream:
         hpo_params = yaml.load(stream)
 
     # Load and clean results
-    with open("../hpo_dataset/results.yml", 'r') as stream:
+    with open(os.path.join(config.HPO_FOLDER, "results.yml"), 'r') as stream:
         hpo_results = yaml.load(stream)
         cleaned_hpo_results = {}
         # clean results as there are nan's and shorter ones
@@ -100,8 +102,8 @@ if __name__ == '__main__':
         for k, v in classifier_indexed_params[c].items():
             print("Indexed; Key: {0}, Value: {1}".format(k, v))
 
-    with open('../hpo_dataset/preprocessed_data.pickle', 'wb') as handle:
+    with open(os.path.join(config.HPO_FOLDER, 'preprocessed_data.pickle'), 'wb') as handle:
         pickle.dump(classifier_indexed_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open('../hpo_dataset/preprocessed_param_values.pickle', 'wb') as handle:
+    with open(os.path.join(config.HPO_FOLDER, 'preprocessed_param_values.pickle'), 'wb') as handle:
         pickle.dump(classifier_param_values, handle, protocol=pickle.HIGHEST_PROTOCOL)
