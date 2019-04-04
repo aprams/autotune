@@ -1,5 +1,7 @@
 import os
 
+N_MP_PROCESSES = 6
+
 ROOT_FOLDER = os.path.dirname(os.path.realpath(__file__))
 
 PLOT_FOLDER = os.path.join(ROOT_FOLDER, "visualizations/plots/")

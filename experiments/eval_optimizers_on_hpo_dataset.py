@@ -158,7 +158,7 @@ def worker(i):
 
     return optimizer_results
 
-pool = mp.Pool(6)
+pool = mp.Pool(config.N_PROCESSES)
 results = pool.map(worker, range(N_REPS_PER_OPTIMIZER))
 
 new_optimizer_results = {}
@@ -237,7 +237,7 @@ def combined_worker(i):
     return combined_optimizer_results
 
 
-pool = mp.Pool(10)
+pool = mp.Pool(config.N_PROCESSES)
 results = pool.map(combined_worker, range(N_REPS_PER_OPTIMIZER))
 
 new_combined_optimizer_results = {}
