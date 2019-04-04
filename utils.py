@@ -8,6 +8,68 @@ import math
 
 PLOT_FOLDER = config.PLOT_FOLDER
 
+
+def plot_results(np_results, dataset_idx=0, avg_datasets=False, t_0=0, plot_ranges=True, use_log_scale_x=False,
+                 use_log_scale_y=False, save_file_name=None):
+    """
+    Plot results for given dataset or averaged from given start t_0
+    :param np_results: data to plot
+    :param dataset_idx: index of dataset to plot, not needed if avg_datasets=True
+    :param avg_datasets: Bool indicating whether to average over datasets or not
+    :param t_0: first time step to plot from
+    """
+    print("Plots, averaged={0} ".format(avg_datasets) +
+          (", dataset_idx={0}".format(dataset_idx) if avg_datasets is False else ""))
+    plt.figure()
+    ax = plt.gca()
+    for optimizer in np_results.keys():
+        color = next(ax._get_lines.prop_cycler)['color']
+        tmp_data = np_results[optimizer] if (avg_datasets or dataset_idx==None) else \
+            np_results[optimizer][dataset_idx]
+
+        avg_min_losses, std_min_losses, lower_min_losses, upper_min_losses = \
+            get_mean_std_min_losses_per_timestep(tmp_data, t_0=t_0)
+        plt.plot(range(t_0, t_0 + len(lower_min_losses)), avg_min_losses, label=optimizer + "_cum", color=color)
+        if plot_ranges:
+            plt.fill_between(x=range(t_0, t_0 + len(lower_min_losses)), y1=lower_min_losses,
+                             y2=upper_min_losses, alpha=0.3, color=color)
+
+    plt.xlabel("Optimization steps")
+    plt.ylabel("Loss")
+    if use_log_scale_x:
+        plt.xscale('log')
+    if use_log_scale_y:
+        plt.yscale('log')
+    plt.legend(loc='best')
+    if save_file_name is not None:
+        plt.savefig(os.path.join(config.PLOT_FOLDER, save_file_name))
+    else:
+        plt.show()
+
+    plt.clf()
+
+
+def get_mean_std_min_losses_per_timestep(data, axes=None, t_0=0):
+    """
+    Calculate mean and standard deviation of the given experiment
+    :param data: shape [dataset_idx, iteration_idx, timesteps] if avg_datasets = True, else
+    shape [iteration_idx, timesteps]
+    :param avg_datasets: Bool indicating whether to average over datasets or not
+    :param t_0: start time step
+    :return: mean, std, 25 percentile, 75 percentile per timestep over experiment runs
+    """
+    min_losses = np.minimum.accumulate(data, axis=-1)
+    min_losses = min_losses[..., t_0:]
+    if axes == None:
+        axes = tuple(range(len(data.shape) - 1))
+    avg_min_losses = np.percentile(min_losses, 50, axis=axes)  # np.nanmean(min_losses, axis=axis)
+    std_min_losses = np.nanstd(min_losses, axis=axes)
+    lower_min_losses = np.percentile(min_losses, 25, axis=axes)
+    upper_min_losses = np.percentile(min_losses, 75, axis=axes)
+    # print("avg/std min_losses shape: ", avg_min_losses.shape, std_min_losses.shape)
+    return avg_min_losses, std_min_losses, lower_min_losses, upper_min_losses
+
+
 def results_to_numpy(optimizer_results, result_idx=1, negative=True):
     """
     Convert passed experiment results to numpy array

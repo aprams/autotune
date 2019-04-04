@@ -1,3 +1,4 @@
+import random
 import functools
 from autotune.param_space import Real, Integer, Bool
 from typing import Callable
@@ -10,6 +11,8 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
     name = "TPE"
     def __init__(self, hyper_param_list, eval_fn: Callable, callback_fn: Callable=None, verbose: int = 0,
                  n_iterations=50, random_seed=None, n_startup_jobs=5, n_EI_candidates=24, name="TPE"):
+        random.seed(random_seed)
+        np.random.seed(random_seed)
         self.n_iterations = n_iterations
         super().__init__(hyper_param_list, eval_fn, callback_fn, verbose, should_call_eval_fn=False)
         is_hpo_space = False if type(hyper_param_list) is list else True
