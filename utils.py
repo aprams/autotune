@@ -9,8 +9,23 @@ import math
 PLOT_FOLDER = config.PLOT_FOLDER
 
 
+def prune_invalid_params_for_classifier(params, classifier):
+    pruned_params = {}
+    valid_string_starts = [classifier, 'preprocessing', 'pca']
+    for k in params:
+        is_valid_key_for_classifier = any([str.startswith(k, x) for x in valid_string_starts])
+        if is_valid_key_for_classifier:
+            pruned_params[k] = params[k]
+
+    if pruned_params['preprocessing'] == 0 and 'pca:keep_variance' in pruned_params:
+        del pruned_params['pca:keep_variance']
+    if 'classifier' in pruned_params:
+        del pruned_params['classifier']
+    return pruned_params
+
+
 def flatten(structure, key="", flattened=None):
-    #https://stackoverflow.com/questions/8477550/
+    # https://stackoverflow.com/questions/8477550/
     # flattening-a-list-of-dicts-of-lists-of-dicts-etc-of-unknown-depth-in-python-n
     if flattened is None:
         flattened = {}

@@ -7,13 +7,13 @@ from .hyper_param_opt import AbstractHyperParameterOptimizer
 
 class RandomSearchOptimizer(AbstractHyperParameterOptimizer):
     name="RandomSearch"
-    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable=None, verbose: int = 0,
-                 n_iterations=5000, random_seed=None, name="RandomSearch"):
+
+    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable = None, n_iterations=5000,
+                 verbose: int = 0, random_seed=None, name="RandomSearch"):
+        super().__init__(hyper_param_list=hyper_param_list, eval_fn=eval_fn, callback_fn=callback_fn,
+                         n_iterations=n_iterations, verbose=verbose,
+                         random_seed=random_seed, name=name)
         self.n_iterations = n_iterations
-        random.seed(random_seed)
-        np.random.seed(random_seed)
-        super().__init__(hyper_param_list, eval_fn, callback_fn, verbose)
-        self.name = name
 
     def _sample_random_hyperparam_set(self):
         sampled_params = {}

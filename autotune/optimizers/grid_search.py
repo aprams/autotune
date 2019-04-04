@@ -7,10 +7,10 @@ from autotune.param_space import Param
 class GridSearchOptimizer(AbstractHyperParameterOptimizer):
     name = "GridSearch"
 
-    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable=None, n_iterations=None,
-                 name="GridSearch"):
-        super().__init__(hyper_param_list, eval_fn, callback_fn, random_seed=None)
-        self.name = name
+    def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable = None, n_iterations=None,
+                 verbose: int = 0, random_seed=None, name="GridSearch"):
+        super().__init__(hyper_param_list=hyper_param_list, eval_fn=eval_fn, callback_fn=callback_fn,
+                         n_iterations=n_iterations, verbose=verbose, random_seed=random_seed, name=name)
 
     def _get_all_param_combinations(self, dicts: list=None, tmp_dict: dict=None, i: int=0):
         """

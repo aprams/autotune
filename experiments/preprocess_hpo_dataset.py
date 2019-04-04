@@ -4,7 +4,7 @@ import pickle
 import os
 import config
 from autotune import param_space
-
+import utils
 
 def create_index_param_space(param_value_dict):
     params = []
@@ -107,3 +107,11 @@ if __name__ == '__main__':
 
     with open(os.path.join(config.HPO_FOLDER, 'preprocessed_param_values.pickle'), 'wb') as handle:
         pickle.dump(classifier_param_values, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    loss_ranges_per_classifier_dataset = utils.get_loss_ranges_per_classifier_dataset(classifier_indexed_params,
+                                                                                      max_n_datasets=None)
+    meta_data = dict()
+    meta_data['loss_ranges'] = loss_ranges_per_classifier_dataset
+
+    with open(os.path.join(config.HPO_FOLDER, 'preprocessed_meta_data.pickle'), 'wb') as handle:
+        pickle.dump(meta_data, handle, protocol=pickle.HIGHEST_PROTOCOL)

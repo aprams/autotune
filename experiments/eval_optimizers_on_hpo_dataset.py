@@ -1,21 +1,23 @@
 import sys, os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
+sys.path.insert(1, os.path.join(sys.path[0], 'hpo_dataset'))
+sys.path.insert(1, sys.path[0])
 
 import pickle
-from autotune.optimizers import ga_search, tpe_search, gp_search
-from autotune.optimizers import random_search
-from preprocess_hpo_dataset import create_index_param_space
-from hyperopt.pyll import scope
-from hyperopt import hp
 import utils
-from autotune import param_space
 import config
 import os
+import multiprocessing as mp
+
+from hpo_dataset import hpo_utils
+from hpo_space import tpe_combined_spaces, tpe_spaces
+from autotune.optimizers import ga_search, tpe_search, gp_search
+from autotune.optimizers import random_search
 
 
-def random_seed_fn(i):
-    return i
-
+N_DATASETS = 10  # 42
+N_REPS_PER_OPTIMIZER = 4  # 10
+N_OPT_STEPS = 15  # 100
 
 opt_and_params = [(random_search.RandomSearchOptimizer, {}),
                   #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 5, 'name': 'TPE_short'}),
@@ -27,124 +29,48 @@ opt_and_params = [(random_search.RandomSearchOptimizer, {}),
                   (ga_search.GeneticAlgorithmSearch, {}),
                   ]#(grid_search.GridSearchOptimizer, {) ]
 
-pca = {'preprocessing': 1, 'pca:keep_variance':
-    hp.quniform('pca:keep_variance', 0, 1, 1)} #2
-
-penalty_and_loss = hp.choice('penalty_and_loss',
-                             [{'liblinear:penalty': 0, 'liblinear:loss': 0},
-                              #{'liblinear:penalty': 'l2', 'liblinear:loss': 'l1'},
-                              {'liblinear:penalty': 1, 'liblinear:loss': 0}]) # 2
-liblinear_LOG2_C = scope.int(hp.quniform('liblinear:LOG2_C', 0, 20, 1)) # 21
-liblinear = {'classifier': 'liblinear', 'liblinear:penalty_and_loss': penalty_and_loss, 'liblinear:C': liblinear_LOG2_C}
-# 1, 3, 21 = 63
-
-libsvm_LOG2_C = scope.int(hp.quniform('libsvm_svc:C', 0, 20, 1)) # 21
-libsvm_LOG2_gamma = scope.int(hp.quniform('libsvm_svc:gamma', 0, 18, 1)) # 18/19
-libsvm_svc = {'classifier': 'libsvm_svc', 'libsvm_svc:C': libsvm_LOG2_C, 'libsvm_svc:gamma': libsvm_LOG2_gamma}
-# 21 * 19 = 399
-criterion = hp.choice('random_forest:criterion', [0, 1]) # 2
-max_features = scope.int(hp.quniform('random_forest:max_features', 0, 9, 1)) # 10
-min_samples_split = scope.int(hp.quniform('random_forest:min_samples_split', 0, 4, 1)) # 5
-random_forest = {'classifier': 'random_forest', 'random_forest:criterion': criterion, 'random_forest:max_features': max_features, 'random_forest:min_samples_split': min_samples_split}
-# 2 * 10 * 5 = 100
-
-preprocessors = {'None': 0, 'pca': pca} # 3
-classifiers_params = {'libsvm_svc': libsvm_svc, # 399 * 3 = 1197
-               'liblinear': liblinear, # 42 * 3 = 126
-               'random_forest': random_forest # 100 * 3 = 300
-                }
-
-tpe_combined_spaces = {'classifier': hp.choice('classifier', classifiers_params.values()),
-         'preprocessing': hp.choice('preprocessing', preprocessors.values())}
-tpe_spaces = {x: {x:classifiers_params[x],
-                  'preprocessing': hp.choice('preprocessing', preprocessors.values())
-                  } for x in classifiers_params.keys()}
-
-# Load preprocessed data dicts
-with open(os.path.join(config.HPO_FOLDER, 'preprocessed_data.pickle'), 'rb') as handle:
-    classifier_indexed_params = pickle.load(handle)
-
-with open(os.path.join(config.HPO_FOLDER, 'preprocessed_param_values.pickle'), 'rb') as handle:
-    classifier_param_values = pickle.load(handle)
-
-classifier_param_spaces = {}
-for k in classifier_indexed_params.keys():
-    print(k)
-    param_list = create_index_param_space(classifier_param_values[k])
-    for p in param_list:
-        print(p.name, p.space)
-    classifier_param_spaces[k] = param_list
-
-classifier_combined_spaces = []
-classifier_combined_spaces += [
-    param_space.Integer(space=list(range(len(list(classifier_param_spaces.keys())))), name='classifier')]
-list(classifier_param_spaces.keys())
-for c in classifier_param_spaces.keys():
-    for p in classifier_param_spaces[c]:
-        classifier_combined_spaces += [p]
-classifiers = list(classifier_param_spaces.keys())
-
-print("=" * 46)
-print("Combined parameter space")
-for p in classifier_combined_spaces:
-    print(p.name, p.space)
-
-N_DATASETS = 3  # 42
-N_REPS_PER_OPTIMIZER = 4  # 10
-N_OPT_STEPS = 15  # 100
-import multiprocessing as mp
-
-loss_ranges_per_classifier_dataset = utils.get_loss_ranges_per_classifier_dataset(classifier_indexed_params,
-                                                                                  max_n_datasets=N_DATASETS)
+classifier_indexed_params, classifier_param_spaces, classifier_combined_spaces, classifiers = hpo_utils.load_hpo_data()
 
 # Experiment resulst always like:
 # [N_ITERS_PER_OPT], ..., {opt_name}, [T]?
 # e.g.: [n_iters], {classifier}, {opt_name}, [T]?
 
 def worker(i):
-    optimizer_results = {}
-
+    results = {}
     print("=" * 46)
-    print("REP ", i)
+    print("Worker ", i, "started")
     for classifier in classifier_indexed_params.keys():
-        optimizer_results[classifier] = {}
+        results[classifier] = {}
         for optimizer, opt_params in opt_and_params:
             opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
-            print("Evaluating optimizer", optimizer, "with params", opt_params)
-            optimizer_results[classifier][opt_name] = [[] for _ in range(N_DATASETS)]
-            print("Evaluating classifier", classifier, i)
+            print("Worker {0} evaluating optimizer {1} with params {2}".format(i, optimizer.name, opt_params))
+            results[classifier][opt_name] = [[] for _ in range(N_DATASETS)]
             for dataset_idx in range(N_DATASETS):
                 def eval_fn(tpe_params):
-                    params = utils.flatten(tpe_params)
-                    if 'classifier' in params:
-                        del params['classifier']
-
-                    if params['preprocessing'] == 0 and 'pca:keep_variance' in params:
-                        del params['pca:keep_variance']
+                    params = utils.prune_invalid_params_for_classifier(utils.flatten(tpe_params), classifier)
                     loss = -classifier_indexed_params[classifier][frozenset(params.items())][dataset_idx]
                     return loss
 
-
                 if optimizer == tpe_search.TPEOptimizer:
                     tmp_opt = optimizer(tpe_spaces[classifier], eval_fn,
-                                        n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
+                                        n_iterations=N_OPT_STEPS, random_seed=i, verbose=0)
                 else:
                     tmp_opt = optimizer(classifier_param_spaces[classifier], eval_fn,
-                                        n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
+                                        n_iterations=N_OPT_STEPS, random_seed=i, verbose=0)
 
                 _ = tmp_opt.maximize()
                 tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                        tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
-                optimizer_results[classifier][opt_name][dataset_idx] = tmp_results
+                results[classifier][opt_name][dataset_idx] = tmp_results
 
     with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'hpo_dataset_optimizer_results_{0}.pickle'.format(i)),
               'wb') as handle:
-        pickle.dump(optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    return optimizer_results
+    return results
 
 pool = mp.Pool(config.N_MP_PROCESSES)
-results = pool.map(worker, range(N_REPS_PER_OPTIMIZER))
+pool_results = pool.map(worker, range(N_REPS_PER_OPTIMIZER))
 
 new_optimizer_results = {}
 
@@ -152,64 +78,53 @@ for classifier in classifier_indexed_params.keys():
     new_optimizer_results[classifier] = {}  # manager.dict()
     for optimizer, opt_params in opt_and_params:
         opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
-        print("yee", classifier)
         new_optimizer_results[classifier][opt_name] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
         for i in range(N_REPS_PER_OPTIMIZER):
             for dataset_idx in range(N_DATASETS):
-                new_optimizer_results[classifier][opt_name][dataset_idx][i] = results[i][classifier][opt_name][dataset_idx]
+                new_optimizer_results[classifier][opt_name][dataset_idx][i] = pool_results[i][classifier][opt_name][dataset_idx]
 
 optimizer_results = new_optimizer_results
 
+
 # Combined classifier and param search
 
+
 def combined_worker(i):
-    combined_optimizer_results = {}
+    results = {}
     print("=" * 46)
-    print("REP ", i)
+    print("combined_worker ", i, "started")
     for optimizer, opt_params in opt_and_params:
-        print("Evaluating optimizer", optimizer, "with params", opt_params)
+        print("Combined worker {0} evaluating optimizer {1} with params {2}".format(i, optimizer.name, opt_params))
         opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
-        combined_optimizer_results[opt_name] = [[] for _ in range(N_DATASETS)]
+        results[opt_name] = [[] for _ in range(N_DATASETS)]
 
         for dataset_idx in range(N_DATASETS):
             def eval_fn(tpe_params):
                 params = utils.flatten(tpe_params)
-                classifier = params['classifier']
-                del params['classifier']
-                if type(classifier) is int:
-                    classifier = classifiers[classifier]
-                final_params = {}
-                for k in params:
-                    is_valid_key_for_classifier = str.startswith(k, classifier) or str.startswith(k, 'preprocessing') \
-                                                  or str.startswith(k, 'pca')
-                    if is_valid_key_for_classifier:
-                        final_params[k] = params[k]
-                params = final_params
-
-                if params['preprocessing'] == 0 and 'pca:keep_variance' in params:
-                    del params['pca:keep_variance']
-
-                loss = -classifier_indexed_params[classifier][frozenset(params.items())][dataset_idx]
+                tmp_c = params['classifier']
+                c = classifiers[tmp_c] if type(tmp_c) is int else tmp_c
+                params = utils.prune_invalid_params_for_classifier(params, c)
+                loss = -classifier_indexed_params[c][frozenset(params.items())][dataset_idx]
                 return loss
 
             if optimizer == tpe_search.TPEOptimizer:
                 tmp_opt = optimizer(tpe_combined_spaces, eval_fn,
-                                    n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
+                                    n_iterations=N_OPT_STEPS, random_seed=i, verbose=0)
             else:
                 tmp_opt = optimizer(classifier_combined_spaces, eval_fn,
-                                    n_iterations=N_OPT_STEPS, random_seed=random_seed_fn(i), verbose=0)
+                                    n_iterations=N_OPT_STEPS, random_seed=i, verbose=0)
             _ = tmp_opt.maximize()
             tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                    tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
-            combined_optimizer_results[opt_name][dataset_idx] = tmp_results
+            results[opt_name][dataset_idx] = tmp_results
         with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'combined_hpo_dataset_optimizer_results_{0}.pickle'.format(i)),
                   'wb') as handle:
-            pickle.dump(combined_optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    return combined_optimizer_results
+            pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    return results
 
 
 pool = mp.Pool(config.N_MP_PROCESSES)
-results = pool.map(combined_worker, range(N_REPS_PER_OPTIMIZER))
+pool_results = pool.map(combined_worker, range(N_REPS_PER_OPTIMIZER))
 
 new_combined_optimizer_results = {}
 
@@ -220,14 +135,9 @@ for optimizer, opt_params in opt_and_params:
     new_combined_optimizer_results[opt_name] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
     for i in range(N_REPS_PER_OPTIMIZER):
         for dataset_idx in range(N_DATASETS):
-            new_combined_optimizer_results[opt_name][dataset_idx][i] = results[i][opt_name][dataset_idx]
+            new_combined_optimizer_results[opt_name][dataset_idx][i] = pool_results[i][opt_name][dataset_idx]
 
 combined_optimizer_results = new_combined_optimizer_results
-
-
-
-optimizer_results['meta'] = {}
-optimizer_results['meta']['loss_ranges'] = loss_ranges_per_classifier_dataset
 
 with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'hpo_dataset_optimizer_results.pickle'), 'wb') as handle:
     pickle.dump(optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
