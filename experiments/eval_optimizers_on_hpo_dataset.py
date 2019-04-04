@@ -96,18 +96,21 @@ import multiprocessing as mp
 
 loss_ranges_per_classifier_dataset = get_loss_ranges_per_classifier_dataset(classifier_indexed_params, max_n_datasets=N_DATASETS)
 
+# Experiment resulst always like:
+# [N_ITERS_PER_OPT], ..., {opt_name}, [T]?
+# e.g.: [n_iters], {classifier}, {opt_name}, [T]?
 
 def worker(i):
     optimizer_results = {}
 
     print("=" * 46)
     print("REP ", i)
-    for optimizer, opt_params in opt_and_params:
-        print("Evaluating optimizer", optimizer, "with params", opt_params)
-        opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
-        optimizer_results[opt_name] = {}
-        for classifier in classifier_indexed_params.keys():
-            optimizer_results[opt_name][classifier] = [[] for _ in range(N_DATASETS)]
+    for classifier in classifier_indexed_params.keys():
+        optimizer_results[classifier] = {}
+        for optimizer, opt_params in opt_and_params:
+            opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
+            print("Evaluating optimizer", optimizer, "with params", opt_params)
+            optimizer_results[classifier][opt_name] = [[] for _ in range(N_DATASETS)]
             print("Evaluating classifier", classifier, i)
             for dataset_idx in range(N_DATASETS):
                 def eval_fn(tpe_params):
@@ -147,7 +150,7 @@ def worker(i):
                 _ = tmp_opt.maximize()
                 tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                        tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
-                optimizer_results[opt_name][classifier][dataset_idx] = tmp_results
+                optimizer_results[classifier][opt_name][dataset_idx] = tmp_results
 
     with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'hpo_dataset_optimizer_results_{0}.pickle'.format(i)),
               'wb') as handle:
@@ -160,15 +163,15 @@ results = pool.map(worker, range(N_REPS_PER_OPTIMIZER))
 
 new_optimizer_results = {}
 
-for optimizer, opt_params in opt_and_params:
-    opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
-    new_optimizer_results[opt_name] = {}  # manager.dict()
-    for classifier in classifier_indexed_params.keys():
+for classifier in classifier_indexed_params.keys():
+    new_optimizer_results[classifier] = {}  # manager.dict()
+    for optimizer, opt_params in opt_and_params:
+        opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
         print("yee", classifier)
-        new_optimizer_results[opt_name][classifier] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
+        new_optimizer_results[classifier][opt_name] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
         for i in range(N_REPS_PER_OPTIMIZER):
             for dataset_idx in range(N_DATASETS):
-                new_optimizer_results[opt_name][classifier][dataset_idx][i] = results[i][opt_name][classifier][dataset_idx]
+                new_optimizer_results[classifier][opt_name][dataset_idx][i] = results[i][classifier][opt_name][dataset_idx]
 
 optimizer_results = new_optimizer_results
 

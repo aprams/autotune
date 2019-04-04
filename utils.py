@@ -8,11 +8,41 @@ import math
 
 PLOT_FOLDER = config.PLOT_FOLDER
 
+def results_to_numpy(optimizer_results, result_idx=1, negative=True):
+    """
+    Convert passed experiment results to numpy array
+    :param optimizer_results: dict of [optimizer][classifier]
+    :param result_idx: result idx:
+    0 = tmp_opt.hyperparameter_set_per_timestep,
+    1 = tmp_opt.eval_fn_per_timestep,
+    2 = tmp_opt.cpu_time_per_opt_timestep,
+    3 = tmp_opt.wall_time_per_opt_timestep
+    :return: numpy array of specified results
+    """
+    np_results = {}
+    for optimizer in optimizer_results:
+        if type(optimizer_results[optimizer]) == dict:
+            tmp_results = {}
+
+            opt_results = optimizer_results[optimizer]
+            for classifier in opt_results:
+                results = np.array(opt_results[classifier])
+                results = np.array(results[..., result_idx], dtype=np.float32)
+                tmp_results[classifier] = -results
+            np_results[optimizer] = tmp_results
+        else:
+
+            results = np.array(optimizer_results[optimizer])
+            results = np.array(results[..., result_idx], dtype=np.float32)
+            np_results[optimizer] = -results if negative else results
+    return np_results
+
+
 def save_plotted_progress(optimizer, data=None, name=None, x_lim=None, y_lim=None):
     os.makedirs(PLOT_FOLDER, exist_ok=True)
 
     data_to_plot = data
-    if data_to_plot is  None:
+    if data_to_plot is None:
         data_to_plot = optimizer.eval_fn_per_timestep
 
     _name = name
