@@ -7,7 +7,7 @@ from autotune.optimizers import random_search
 from preprocess_hpo_dataset import create_index_param_space
 from hyperopt.pyll import scope
 from hyperopt import hp
-from utils import get_loss_ranges_per_classifier_dataset
+import utils
 from autotune import param_space
 import config
 import os
@@ -21,7 +21,7 @@ opt_and_params = [(random_search.RandomSearchOptimizer, {}),
                   #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 5, 'name': 'TPE_short'}),
                   (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'name': 'TPE'}),
                   #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 50, 'name': 'TPE_long'}),
-                  (gp_search.GaussianProcessOptimizer, {'gp_n_iter': 25, 'name': 'GP_short'}),
+                  #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 25, 'name': 'GP_short'}),
                   #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 100, 'name': 'GP_medium'}),
                   #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 250, 'name': 'GP_long'}),
                   (ga_search.GeneticAlgorithmSearch, {}),
@@ -89,12 +89,13 @@ print("Combined parameter space")
 for p in classifier_combined_spaces:
     print(p.name, p.space)
 
-N_DATASETS = 42  # 42
-N_REPS_PER_OPTIMIZER = 10  # 10
-N_OPT_STEPS = 75  # 100
+N_DATASETS = 3  # 42
+N_REPS_PER_OPTIMIZER = 4  # 10
+N_OPT_STEPS = 15  # 100
 import multiprocessing as mp
 
-loss_ranges_per_classifier_dataset = get_loss_ranges_per_classifier_dataset(classifier_indexed_params, max_n_datasets=N_DATASETS)
+loss_ranges_per_classifier_dataset = utils.get_loss_ranges_per_classifier_dataset(classifier_indexed_params,
+                                                                                  max_n_datasets=N_DATASETS)
 
 # Experiment resulst always like:
 # [N_ITERS_PER_OPT], ..., {opt_name}, [T]?
@@ -114,29 +115,13 @@ def worker(i):
             print("Evaluating classifier", classifier, i)
             for dataset_idx in range(N_DATASETS):
                 def eval_fn(tpe_params):
-                    params = {}
-                    for k in tpe_params:
-                        if type(tpe_params[k]) == int:
-                            params[k] = tpe_params[k]
-                            continue
-                        elif type(tpe_params[k]) == dict:
-                            for x in tpe_params[k]:
-                                if type(tpe_params[k][x]) is dict:
-                                    for y in tpe_params[k][x]:
-                                        params[y] = tpe_params[k][x][y]
-                                    continue
-                                else:
-                                    params[x] = tpe_params[k][x]
-                        else:
-                            raise Exception('unhandled type')
+                    params = utils.flatten(tpe_params)
                     if 'classifier' in params:
                         del params['classifier']
 
                     if params['preprocessing'] == 0 and 'pca:keep_variance' in params:
                         del params['pca:keep_variance']
-                    #print(params)
                     loss = -classifier_indexed_params[classifier][frozenset(params.items())][dataset_idx]
-                    #print("TPE params {0} yielded a loss of {1}".format(params, loss))
                     return loss
 
 
@@ -158,7 +143,7 @@ def worker(i):
 
     return optimizer_results
 
-pool = mp.Pool(config.N_PROCESSES)
+pool = mp.Pool(config.N_MP_PROCESSES)
 results = pool.map(worker, range(N_REPS_PER_OPTIMIZER))
 
 new_optimizer_results = {}
@@ -188,21 +173,7 @@ def combined_worker(i):
 
         for dataset_idx in range(N_DATASETS):
             def eval_fn(tpe_params):
-                params = {}
-                for k in tpe_params:
-                    if type(tpe_params[k]) == int:
-                        params[k] = tpe_params[k]
-                        continue
-                    elif type(tpe_params[k]) == dict:
-                        for x in tpe_params[k]:
-                            if type(tpe_params[k][x]) is dict:
-                                for y in tpe_params[k][x]:
-                                    params[y] = tpe_params[k][x][y]
-                                continue
-                            else:
-                                params[x] = tpe_params[k][x]
-                    else:
-                        raise Exception('unhandled type')
+                params = utils.flatten(tpe_params)
                 classifier = params['classifier']
                 del params['classifier']
                 if type(classifier) is int:
@@ -237,7 +208,7 @@ def combined_worker(i):
     return combined_optimizer_results
 
 
-pool = mp.Pool(config.N_PROCESSES)
+pool = mp.Pool(config.N_MP_PROCESSES)
 results = pool.map(combined_worker, range(N_REPS_PER_OPTIMIZER))
 
 new_combined_optimizer_results = {}

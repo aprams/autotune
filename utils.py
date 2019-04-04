@@ -9,6 +9,22 @@ import math
 PLOT_FOLDER = config.PLOT_FOLDER
 
 
+def flatten(structure, key="", flattened=None):
+    #https://stackoverflow.com/questions/8477550/
+    # flattening-a-list-of-dicts-of-lists-of-dicts-etc-of-unknown-depth-in-python-n
+    if flattened is None:
+        flattened = {}
+    if type(structure) not in(dict, list):
+        flattened[key] = structure
+    elif isinstance(structure, list):
+        for i, item in enumerate(structure):
+            flatten(item, "%d" % i, flattened)
+    else:
+        for new_key, value in structure.items():
+            flatten(value, new_key, flattened)
+    return flattened
+
+
 def plot_results(np_results, dataset_idx=0, avg_datasets=False, t_0=0, plot_ranges=True, use_log_scale_x=False,
                  use_log_scale_y=False, save_file_name=None):
     """
