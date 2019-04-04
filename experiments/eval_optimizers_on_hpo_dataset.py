@@ -91,34 +91,23 @@ for p in classifier_combined_spaces:
 
 N_DATASETS = 42  # 42
 N_REPS_PER_OPTIMIZER = 10  # 10
-N_OPT_STEPS = 15  # 100
+N_OPT_STEPS = 75  # 100
 import multiprocessing as mp
-manager = mp.Manager()
 
 loss_ranges_per_classifier_dataset = get_loss_ranges_per_classifier_dataset(classifier_indexed_params, max_n_datasets=N_DATASETS)
 
 
-#print("Result dict:")
-#print(optimizer_results)
-#print(optimizer_results[k] for k in optimizer_results.keys())
-
 def worker(i):
     optimizer_results = {}
 
-    for optimizer, opt_params in opt_and_params:
-        opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
-        optimizer_results[opt_name] = {}#manager.dict()
-        for classifier in classifier_indexed_params.keys():
-            print("yee", classifier)
-            optimizer_results[opt_name][classifier] = [[] for _ in range(N_DATASETS)]
-            #[[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in
-                                                  #     range(N_DATASETS)]
     print("=" * 46)
     print("REP ", i)
     for optimizer, opt_params in opt_and_params:
         print("Evaluating optimizer", optimizer, "with params", opt_params)
         opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
+        optimizer_results[opt_name] = {}
         for classifier in classifier_indexed_params.keys():
+            optimizer_results[opt_name][classifier] = [[] for _ in range(N_DATASETS)]
             print("Evaluating classifier", classifier, i)
             for dataset_idx in range(N_DATASETS):
                 def eval_fn(tpe_params):
@@ -168,14 +157,8 @@ def worker(i):
 
 pool = mp.Pool(10)
 results = pool.map(worker, range(N_REPS_PER_OPTIMIZER))
-print(results)
-print(len(results))
-print(len(results[0]))
 
 new_optimizer_results = {}
-
-def transpose_worker_results(results):
-    pass
 
 for optimizer, opt_params in opt_and_params:
     opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
@@ -190,15 +173,15 @@ for optimizer, opt_params in opt_and_params:
 optimizer_results = new_optimizer_results
 
 # Combined classifier and param search
-combined_optimizer_results = {}
-for i in range(N_REPS_PER_OPTIMIZER):
+
+def combined_worker(i):
+    combined_optimizer_results = {}
     print("=" * 46)
     print("REP ", i)
     for optimizer, opt_params in opt_and_params:
         print("Evaluating optimizer", optimizer, "with params", opt_params)
         opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
-        if i == 0:
-            combined_optimizer_results[opt_name] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
+        combined_optimizer_results[opt_name] = [[] for _ in range(N_DATASETS)]
 
         for dataset_idx in range(N_DATASETS):
             def eval_fn(tpe_params):
@@ -244,10 +227,28 @@ for i in range(N_REPS_PER_OPTIMIZER):
             _ = tmp_opt.maximize()
             tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                    tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
-            combined_optimizer_results[opt_name][dataset_idx][i] = tmp_results
+            combined_optimizer_results[opt_name][dataset_idx] = tmp_results
         with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'combined_hpo_dataset_optimizer_results_{0}.pickle'.format(i)),
                   'wb') as handle:
             pickle.dump(combined_optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    return combined_optimizer_results
+
+
+pool = mp.Pool(10)
+results = pool.map(combined_worker, range(N_REPS_PER_OPTIMIZER))
+
+new_combined_optimizer_results = {}
+
+for optimizer, opt_params in opt_and_params:
+    opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
+    new_combined_optimizer_results[opt_name] = {}  # manager.dict()
+
+    new_combined_optimizer_results[opt_name] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
+    for i in range(N_REPS_PER_OPTIMIZER):
+        for dataset_idx in range(N_DATASETS):
+            new_combined_optimizer_results[opt_name][dataset_idx][i] = results[i][opt_name][dataset_idx]
+
+combined_optimizer_results = new_combined_optimizer_results
 
 
 
