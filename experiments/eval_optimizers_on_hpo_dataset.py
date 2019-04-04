@@ -21,7 +21,7 @@ opt_and_params = [(random_search.RandomSearchOptimizer, {}),
                   #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 5, 'name': 'TPE_short'}),
                   (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'name': 'TPE'}),
                   #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 50, 'name': 'TPE_long'}),
-                  #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 25, 'name': 'GP_short'}),
+                  (gp_search.GaussianProcessOptimizer, {'gp_n_iter': 25, 'name': 'GP_short'}),
                   #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 100, 'name': 'GP_medium'}),
                   #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 250, 'name': 'GP_long'}),
                   (ga_search.GeneticAlgorithmSearch, {}),
@@ -158,7 +158,7 @@ def worker(i):
 
     return optimizer_results
 
-pool = mp.Pool(10)
+pool = mp.Pool(6)
 results = pool.map(worker, range(N_REPS_PER_OPTIMIZER))
 
 new_optimizer_results = {}
