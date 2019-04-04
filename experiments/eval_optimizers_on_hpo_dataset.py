@@ -2,7 +2,7 @@ import sys, os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import pickle
-from autotune.optimizers import ga_search, tpe_search
+from autotune.optimizers import ga_search, tpe_search, gp_search
 from autotune.optimizers import random_search
 from preprocess_hpo_dataset import create_index_param_space
 from hyperopt.pyll import scope
@@ -18,7 +18,7 @@ def random_seed_fn(i):
 
 
 opt_and_params = [(random_search.RandomSearchOptimizer, {}),
-                  (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 5, 'name': 'TPE_short'}),
+                  #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 5, 'name': 'TPE_short'}),
                   (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'name': 'TPE'}),
                   #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 50, 'name': 'TPE_long'}),
                   #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 25, 'name': 'GP_short'}),
@@ -91,25 +91,35 @@ for p in classifier_combined_spaces:
 
 N_DATASETS = 42  # 42
 N_REPS_PER_OPTIMIZER = 10  # 10
-N_OPT_STEPS = 60  # 100
-optimizer_results = {}
+N_OPT_STEPS = 15  # 100
+import multiprocessing as mp
+manager = mp.Manager()
 
 loss_ranges_per_classifier_dataset = get_loss_ranges_per_classifier_dataset(classifier_indexed_params, max_n_datasets=N_DATASETS)
 
-# per classifier tests
-for i in range(N_REPS_PER_OPTIMIZER):
+
+#print("Result dict:")
+#print(optimizer_results)
+#print(optimizer_results[k] for k in optimizer_results.keys())
+
+def worker(i):
+    optimizer_results = {}
+
+    for optimizer, opt_params in opt_and_params:
+        opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
+        optimizer_results[opt_name] = {}#manager.dict()
+        for classifier in classifier_indexed_params.keys():
+            print("yee", classifier)
+            optimizer_results[opt_name][classifier] = [[] for _ in range(N_DATASETS)]
+            #[[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in
+                                                  #     range(N_DATASETS)]
     print("=" * 46)
     print("REP ", i)
     for optimizer, opt_params in opt_and_params:
         print("Evaluating optimizer", optimizer, "with params", opt_params)
         opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
-        if i == 0:
-            optimizer_results[opt_name] = {}
         for classifier in classifier_indexed_params.keys():
-            print("Evaluating classifier", classifier)
-            if i == 0:
-                optimizer_results[opt_name][classifier] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
-
+            print("Evaluating classifier", classifier, i)
             for dataset_idx in range(N_DATASETS):
                 def eval_fn(tpe_params):
                     params = {}
@@ -148,12 +158,36 @@ for i in range(N_REPS_PER_OPTIMIZER):
                 _ = tmp_opt.maximize()
                 tmp_results = list(zip(tmp_opt.hyperparameter_set_per_timestep, tmp_opt.eval_fn_per_timestep,
                                        tmp_opt.cpu_time_per_opt_timestep, tmp_opt.wall_time_per_opt_timestep))
-                optimizer_results[opt_name][classifier][dataset_idx][i] = tmp_results
+                optimizer_results[opt_name][classifier][dataset_idx] = tmp_results
 
     with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'hpo_dataset_optimizer_results_{0}.pickle'.format(i)),
               'wb') as handle:
         pickle.dump(optimizer_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+    return optimizer_results
+
+pool = mp.Pool(10)
+results = pool.map(worker, range(N_REPS_PER_OPTIMIZER))
+print(results)
+print(len(results))
+print(len(results[0]))
+
+new_optimizer_results = {}
+
+def transpose_worker_results(results):
+    pass
+
+for optimizer, opt_params in opt_and_params:
+    opt_name = opt_params['name'] if 'name' in opt_params else optimizer.name
+    new_optimizer_results[opt_name] = {}  # manager.dict()
+    for classifier in classifier_indexed_params.keys():
+        print("yee", classifier)
+        new_optimizer_results[opt_name][classifier] = [[[] for _ in range(N_REPS_PER_OPTIMIZER)] for _ in range(N_DATASETS)]
+        for i in range(N_REPS_PER_OPTIMIZER):
+            for dataset_idx in range(N_DATASETS):
+                new_optimizer_results[opt_name][classifier][dataset_idx][i] = results[i][opt_name][classifier][dataset_idx]
+
+optimizer_results = new_optimizer_results
 
 # Combined classifier and param search
 combined_optimizer_results = {}
