@@ -15,9 +15,9 @@ from autotune.optimizers import ga_search, tpe_search, gp_search
 from autotune.optimizers import random_search
 
 
-N_DATASETS = 10  # 42
-N_REPS_PER_OPTIMIZER = 4  # 10
-N_OPT_STEPS = 15  # 100
+N_DATASETS = 42  # 42
+N_REPS_PER_OPTIMIZER = 10  # 10
+N_OPT_STEPS = 75  # 100
 
 opt_and_params = [(random_search.RandomSearchOptimizer, {}),
                   #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 5, 'name': 'TPE_short'}),
