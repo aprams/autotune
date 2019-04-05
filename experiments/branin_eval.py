@@ -107,29 +107,21 @@ def branin_tpe_search(n_iterations=2000, n_EI_candidates=24, name='TPE', random_
     return optimizer
 
 
-N_BRANIN_ITERS = 50
+N_BRANIN_ITERS = 100
 N_ITERS_PER_OPT = 10
 def worker(i):
-    #gs_optimizer = branin_grid_search()
-    rs_optimizer = branin_random_search(n_iterations=N_BRANIN_ITERS, random_seed=i)
-    ga_optimizer = branin_ga_search(n_iterations=N_BRANIN_ITERS, random_seed=i*2)
-    gp_optimizer_short = branin_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*3, gp_n_iter=25, gp_n_warmup=100000, name='gp_short')
-    gp_optimizer_medium = branin_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*4, gp_n_iter=100, gp_n_warmup=100000, name='gp_medium')
-    gp_optimizer = branin_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*5, gp_n_iter=250, gp_n_warmup=100000)
-    tpe_optimizer = branin_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*6)
-    tpe_optimizer_short = branin_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*7, n_EI_candidates=5, name='TPE_short')
-    tpe_optimizer_long = branin_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*8, n_EI_candidates=100, name='TPE_long')
+    optimizers = [
+    #branin_grid_search(),
+    branin_random_search(n_iterations=N_BRANIN_ITERS, random_seed=i),
+    branin_ga_search(n_iterations=N_BRANIN_ITERS, random_seed=i*2),
+    branin_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*3, gp_n_iter=25, gp_n_warmup=100000, name='gp_short'),
+    branin_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*4, gp_n_iter=100, gp_n_warmup=100000, name='gp_medium'),
+    branin_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*5, gp_n_iter=250, gp_n_warmup=100000),
+    branin_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*6),
+    branin_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*7, n_EI_candidates=5, name='TPE_short'),
+    branin_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*8, n_EI_candidates=100, name='TPE_long'),
+    ]
 
-    optimizers = [#gs_optimizer,
-                  rs_optimizer,
-                  ga_optimizer,
-                  gp_optimizer_short,
-                  gp_optimizer_medium,
-                  gp_optimizer,
-                  tpe_optimizer,
-                  tpe_optimizer_short,
-                  tpe_optimizer_long,
-                  ]
 
     results = {}
     for o in optimizers:

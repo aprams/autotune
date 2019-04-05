@@ -16,7 +16,7 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
     name = "GA"
 
     def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable=None, n_iterations=None,
-                 verbose: int=0, random_seed=None, name="abstract",n_pops=5, elite_pops_fraction=0.2):
+                 verbose: int=0, random_seed=None, name="GA",n_pops=5, elite_pops_fraction=0.2):
         super().__init__(hyper_param_list=hyper_param_list, eval_fn=eval_fn, callback_fn=callback_fn,
                          n_iterations=n_iterations, verbose=verbose, random_seed=random_seed, name=name)
         self.n_pops = n_pops

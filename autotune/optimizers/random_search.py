@@ -13,7 +13,6 @@ class RandomSearchOptimizer(AbstractHyperParameterOptimizer):
         super().__init__(hyper_param_list=hyper_param_list, eval_fn=eval_fn, callback_fn=callback_fn,
                          n_iterations=n_iterations, verbose=verbose,
                          random_seed=random_seed, name=name)
-        self.n_iterations = n_iterations
 
     def _sample_random_hyperparam_set(self):
         sampled_params = {}

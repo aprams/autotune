@@ -29,6 +29,8 @@ class AbstractHyperParameterOptimizer(ABC):
         random.seed(random_seed)
         np.random.seed(random_seed)
 
+        self.n_iterations = n_iterations
+
 
     def initialize(self):
         pass
