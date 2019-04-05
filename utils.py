@@ -8,11 +8,134 @@ import math
 
 PLOT_FOLDER = config.PLOT_FOLDER
 
+
+def prune_invalid_params_for_classifier(params, classifier):
+    pruned_params = {}
+    valid_string_starts = [classifier, 'preprocessing', 'pca']
+    for k in params:
+        is_valid_key_for_classifier = any([str.startswith(k, x) for x in valid_string_starts])
+        if is_valid_key_for_classifier:
+            pruned_params[k] = params[k]
+
+    if pruned_params['preprocessing'] == 0 and 'pca:keep_variance' in pruned_params:
+        del pruned_params['pca:keep_variance']
+    if 'classifier' in pruned_params:
+        del pruned_params['classifier']
+    return pruned_params
+
+
+def flatten(structure, key="", flattened=None):
+    # https://stackoverflow.com/questions/8477550/
+    # flattening-a-list-of-dicts-of-lists-of-dicts-etc-of-unknown-depth-in-python-n
+    if flattened is None:
+        flattened = {}
+    if type(structure) not in(dict, list):
+        flattened[key] = structure
+    elif isinstance(structure, list):
+        for i, item in enumerate(structure):
+            flatten(item, "%d" % i, flattened)
+    else:
+        for new_key, value in structure.items():
+            flatten(value, new_key, flattened)
+    return flattened
+
+
+def plot_results(np_results, dataset_idx=0, avg_datasets=False, t_0=0, plot_ranges=True, use_log_scale_x=False,
+                 use_log_scale_y=False, save_file_name=None):
+    """
+    Plot results for given dataset or averaged from given start t_0
+    :param np_results: data to plot
+    :param dataset_idx: index of dataset to plot, not needed if avg_datasets=True
+    :param avg_datasets: Bool indicating whether to average over datasets or not
+    :param t_0: first time step to plot from
+    """
+    print("Plots, averaged={0} ".format(avg_datasets) +
+          (", dataset_idx={0}".format(dataset_idx) if avg_datasets is False else ""))
+    plt.figure()
+    ax = plt.gca()
+    for optimizer in np_results.keys():
+        color = next(ax._get_lines.prop_cycler)['color']
+        tmp_data = np_results[optimizer] if (avg_datasets or dataset_idx==None) else \
+            np_results[optimizer][dataset_idx]
+
+        avg_min_losses, std_min_losses, lower_min_losses, upper_min_losses = \
+            get_mean_std_min_losses_per_timestep(tmp_data, t_0=t_0)
+        plt.plot(range(t_0, t_0 + len(lower_min_losses)), avg_min_losses, label=optimizer + "_cum", color=color)
+        if plot_ranges:
+            plt.fill_between(x=range(t_0, t_0 + len(lower_min_losses)), y1=lower_min_losses,
+                             y2=upper_min_losses, alpha=0.3, color=color)
+
+    plt.xlabel("Optimization steps")
+    plt.ylabel("Loss")
+    if use_log_scale_x:
+        plt.xscale('log')
+    if use_log_scale_y:
+        plt.yscale('log')
+    plt.legend(loc='best')
+    if save_file_name is not None:
+        plt.savefig(os.path.join(config.PLOT_FOLDER, save_file_name))
+    else:
+        plt.show()
+
+    plt.clf()
+
+
+def get_mean_std_min_losses_per_timestep(data, axes=None, t_0=0):
+    """
+    Calculate mean and standard deviation of the given experiment
+    :param data: shape [dataset_idx, iteration_idx, timesteps] if avg_datasets = True, else
+    shape [iteration_idx, timesteps]
+    :param avg_datasets: Bool indicating whether to average over datasets or not
+    :param t_0: start time step
+    :return: mean, std, 25 percentile, 75 percentile per timestep over experiment runs
+    """
+    min_losses = np.minimum.accumulate(data, axis=-1)
+    min_losses = min_losses[..., t_0:]
+    if axes == None:
+        axes = tuple(range(len(data.shape) - 1))
+    avg_min_losses = np.percentile(min_losses, 50, axis=axes)  # np.nanmean(min_losses, axis=axis)
+    std_min_losses = np.nanstd(min_losses, axis=axes)
+    lower_min_losses = np.percentile(min_losses, 25, axis=axes)
+    upper_min_losses = np.percentile(min_losses, 75, axis=axes)
+    # print("avg/std min_losses shape: ", avg_min_losses.shape, std_min_losses.shape)
+    return avg_min_losses, std_min_losses, lower_min_losses, upper_min_losses
+
+
+def results_to_numpy(optimizer_results, result_idx=1, negative=True):
+    """
+    Convert passed experiment results to numpy array
+    :param optimizer_results: dict of [optimizer][classifier]
+    :param result_idx: result idx:
+    0 = tmp_opt.hyperparameter_set_per_timestep,
+    1 = tmp_opt.eval_fn_per_timestep,
+    2 = tmp_opt.cpu_time_per_opt_timestep,
+    3 = tmp_opt.wall_time_per_opt_timestep
+    :return: numpy array of specified results
+    """
+    np_results = {}
+    for optimizer in optimizer_results:
+        if type(optimizer_results[optimizer]) == dict:
+            tmp_results = {}
+
+            opt_results = optimizer_results[optimizer]
+            for classifier in opt_results:
+                results = np.array(opt_results[classifier])
+                results = np.array(results[..., result_idx], dtype=np.float32)
+                tmp_results[classifier] = -results
+            np_results[optimizer] = tmp_results
+        else:
+
+            results = np.array(optimizer_results[optimizer])
+            results = np.array(results[..., result_idx], dtype=np.float32)
+            np_results[optimizer] = -results if negative else results
+    return np_results
+
+
 def save_plotted_progress(optimizer, data=None, name=None, x_lim=None, y_lim=None):
     os.makedirs(PLOT_FOLDER, exist_ok=True)
 
     data_to_plot = data
-    if data_to_plot is  None:
+    if data_to_plot is None:
         data_to_plot = optimizer.eval_fn_per_timestep
 
     _name = name

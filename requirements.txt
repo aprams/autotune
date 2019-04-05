@@ -6,6 +6,7 @@ attrs==18.2.0
 backcall==0.1.0
 -e git+https://github.com/aprams/BayesianOptimization.git@ff87b52e9072f7b9e5f92da5103248cc1d44ea2b#egg=bayesian_optimization
 bleach==3.1.0
+cffi==1.12.2
 Click==7.0
 cycler==0.10.0
 decorator==4.3.2
@@ -48,12 +49,15 @@ pandocfilters==1.4.2
 parso==0.3.3
 pexpect==4.6.0
 pickleshare==0.7.5
+Pillow==5.4.1
 pluggy==0.8.1
 prometheus-client==0.5.0
 prompt-toolkit==2.0.8
 protobuf==3.6.1
+psutil==5.6.1
 ptyprocess==0.6.0
 py==1.7.0
+pycparser==2.19
 Pygments==2.3.1
 pymongo==3.7.2
 pyparsing==2.3.1
@@ -82,3 +86,4 @@ wcwidth==0.1.7
 webencodings==0.5.1
 Werkzeug==0.14.1
 widgetsnbextension==3.4.2
+

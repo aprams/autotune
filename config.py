@@ -1,4 +1,8 @@
 import os
+import psutil
+
+
+N_MP_PROCESSES = psutil.cpu_count(logical=False)
 
 ROOT_FOLDER = os.path.dirname(os.path.realpath(__file__))
 
