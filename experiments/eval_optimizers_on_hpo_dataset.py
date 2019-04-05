@@ -88,7 +88,6 @@ optimizer_results = new_optimizer_results
 
 # Combined classifier and param search
 
-
 def combined_worker(i):
     results = {}
     print("=" * 46)

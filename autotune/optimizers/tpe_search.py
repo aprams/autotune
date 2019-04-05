@@ -69,11 +69,4 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
             self._on_optimizer_step_done(next_hyperparam_set_dict, eval_metric)
             self._on_pre_hyp_opt_step()
         self._on_optimizer_done()
-        sorted_results = sorted(self.params_to_results_dict.items(), key=lambda kv: kv[1], reverse=True)
-        if self.verbose == 1:
-            print("======")
-            print(len(sorted_results))
-            for k, v in sorted_results[0:10]:
-                print("{0}: {1}".format(k, v))
-            print("======")
-        return sorted_results
+

@@ -13,9 +13,8 @@ class Param(ABC):
             self.projection_fn = lambda x: x
         self.name = name
 
-    @abstractmethod
     def sample(self):
-        pass
+        return self.transform_raw_sample(self.raw_sample())
 
     @abstractmethod
     def transform_raw_sample(self, raw_sample):
@@ -35,10 +34,6 @@ class Integer(Param):
         if space is None:
             space = [0, 1]
         super(Integer, self).__init__(space, projection_fn, name)
-
-
-    def sample(self):
-        return self.transform_raw_sample(self.raw_sample())
 
     def transform_raw_sample(self, raw_sample):
         return self.projection_fn(self.space[int(raw_sample)])
@@ -64,9 +59,6 @@ class Real(Param):
         self.upper_bound = space[1]
         self.n_points_to_sample = n_points_to_sample
         super(Real, self).__init__(space, projection_fn, name)
-
-    def sample(self):
-        return self.transform_raw_sample(self.raw_sample())
 
     def transform_raw_sample(self, raw_sample):
         return self.projection_fn(raw_sample)
@@ -96,9 +88,6 @@ class Choice(Param):
         if space is None:
             space = [0, 1]
         super(Choice, self).__init__(space, projection_fn, name)
-
-    def sample(self):
-        return self.transform_raw_sample(self.raw_sample())
 
     def transform_raw_sample(self, raw_sample):
         return self.projection_fn(self.space[int(raw_sample)])
