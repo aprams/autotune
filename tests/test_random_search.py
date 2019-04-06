@@ -12,7 +12,7 @@ def test_random_search(n_iterations=1000):
     random.seed(0)
     np.random.seed(0)
     optimizer = random_search.RandomSearchOptimizer(sample_params, sample_eval_fn, callback_fn=sample_callback_fn,
-                                                    n_iterations=n_iterations)
+                                                    n_iterations=n_iterations, random_seed=0)
     results = optimizer.maximize()
     assert(results[0][1] >= 10.19)
 

@@ -50,7 +50,7 @@ class AbstractHyperParameterOptimizer(ABC):
                 self._add_sampled_point(next_hyperparam_set, eval_metric)
             self._on_optimizer_step_done(self.hyperparameter_set_per_timestep[-1], self.eval_fn_per_timestep[-1])
             self._on_pre_hyp_opt_step()
-        self._on_optimizer_done()
+        return self._on_optimizer_done()
 
 
     def _add_sampled_point(self, hyperparameter_set: dict, eval_metric: float):
@@ -63,19 +63,15 @@ class AbstractHyperParameterOptimizer(ABC):
             print("Parameter set {0} yielded result metric of: {1}".format(hyperparameter_set, eval_metric))
 
     def _on_optimizer_done(self):
+        sorted_results = sorted(self.params_to_results_dict.items(), key=lambda kv: kv[1], reverse=True)
         if self.verbose >= 1:
-            print("Optimizer finished")
-            sorted_results = sorted(self.params_to_results_dict.items(), key=lambda kv: kv[1], reverse=True)
-            if self.verbose == 1:
-                print("======")
-                print(len(sorted_results))
-                for k, v in sorted_results[0:10]:
-                    print("{0}: {1}".format(k, v))
-                print("======")
-            return sorted_results
-        if self.verbose >= 2:
-            for hyperparameter_set, eval_metric in self.params_to_results_dict.items():
-                print("Parameter set {0} yielded result metric of: {1}".format(dict(hyperparameter_set), eval_metric))
+            print("Optimizer finished, sorted results:")
+            print("======")
+            print(len(sorted_results))
+            for k, v in sorted_results[0:10]:
+                print("{0}: {1}".format(k, v))
+            print("======")
+        return sorted_results
 
     def _on_pre_hyp_opt_step(self):
         self.last_cpu_time = time.clock()

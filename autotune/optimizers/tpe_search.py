@@ -68,5 +68,5 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
             self._add_sampled_point(next_hyperparam_set_dict, eval_metric)
             self._on_optimizer_step_done(next_hyperparam_set_dict, eval_metric)
             self._on_pre_hyp_opt_step()
-        self._on_optimizer_done()
+        return self._on_optimizer_done()
 
