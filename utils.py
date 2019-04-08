@@ -51,6 +51,22 @@ def flatten_list(li):
         yield li
 
 
+def plot_results_multiple(np_results, dataset_idx=0, avg_datasets=False, t_0=0, plot_ranges=True,
+                          save_file_name_prefix=None):
+    for x_log in [True, False]:
+        for y_log in [True, False]:
+            file_name = save_file_name_prefix
+            if x_log or y_log:
+                file_name += "_log"
+                if x_log:
+                    file_name += "_x"
+                if y_log:
+                    file_name += "_y"
+            plot_results(np_results, dataset_idx=dataset_idx, avg_datasets=avg_datasets, t_0=t_0,
+                         plot_ranges=plot_ranges, save_file_name=file_name, use_log_scale_x=x_log,
+                         use_log_scale_y=y_log)
+
+
 def plot_results(np_results, dataset_idx=0, avg_datasets=False, t_0=0, plot_ranges=True, use_log_scale_x=False,
                  use_log_scale_y=False, save_file_name=None):
     """
