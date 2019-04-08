@@ -156,14 +156,3 @@ with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'branin_results.pickle'
 
 with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'branin_eval_fns_per_timestep.pickle'), 'wb') as handle:
     pickle.dump(eval_fns_per_timestep, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-
-plot_results(eval_fns_per_timestep, dataset_idx=None, save_file_name='branin_cum_max_all_log_x_y', use_log_scale_x=True,
-             use_log_scale_y=True)
-
-plot_results(eval_fns_per_timestep, dataset_idx=None, save_file_name='branin_cum_max_all_log_x', use_log_scale_x=True,
-             use_log_scale_y=False)
-
-plot_results(eval_fns_per_timestep, dataset_idx=None, save_file_name='branin_cum_max_all', use_log_scale_x=False,
-             use_log_scale_y=False)
-

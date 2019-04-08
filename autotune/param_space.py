@@ -80,7 +80,7 @@ class Bool(Integer):
         if space is None:
             space = [0, 1]
         if space != [0, 1]:
-            raise Exception('For Bool no space or space of [0, 1] must be given')
+            raise Exception('For Bool no structured_space or structured_space of [0, 1] must be given')
         super(Bool, self).__init__(space, projection_fn, name)
 
 class Choice(Param):

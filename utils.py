@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import math
+import collections
 
 PLOT_FOLDER = config.PLOT_FOLDER
 
@@ -40,6 +41,16 @@ def flatten(structure, key="", flattened=None):
     return flattened
 
 
+def flatten_list(li):
+    """Flatten lists or tuples into their individual items. If those items are
+    again lists or tuples, flatten those."""
+    if isinstance(li, (list, tuple)):
+        for item in li:
+            yield from flatten_list(item)
+    else:
+        yield li
+
+
 def plot_results(np_results, dataset_idx=0, avg_datasets=False, t_0=0, plot_ranges=True, use_log_scale_x=False,
                  use_log_scale_y=False, save_file_name=None):
     """
@@ -60,7 +71,7 @@ def plot_results(np_results, dataset_idx=0, avg_datasets=False, t_0=0, plot_rang
 
         avg_min_losses, std_min_losses, lower_min_losses, upper_min_losses = \
             get_mean_std_min_losses_per_timestep(tmp_data, t_0=t_0)
-        plt.plot(range(t_0, t_0 + len(lower_min_losses)), avg_min_losses, label=optimizer + "_cum", color=color)
+        plt.plot(range(t_0, t_0 + len(lower_min_losses)), avg_min_losses, label=optimizer, color=color)
         if plot_ranges:
             plt.fill_between(x=range(t_0, t_0 + len(lower_min_losses)), y1=lower_min_losses,
                              y2=upper_min_losses, alpha=0.3, color=color)
