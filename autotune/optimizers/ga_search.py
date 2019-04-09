@@ -93,7 +93,7 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
 
         # Crossover & mutate selected pops
         for i in np.arange(n_pops - self.n_elite_pops):
-            crossover_pop_idx = np.random.choice(pops_shape[0], 2, p=softmax(pop_losses), replace=False) #/ np.sum(pop_losses))
+            crossover_pop_idx = np.random.choice(pops_shape[0], 2, p=softmax(pop_losses)+1e-10, replace=False) #/ np.sum(pop_losses))
             crossover_pops = self.pops[crossover_pop_idx]
             new_pop = self.crossover(crossover_pops[0], crossover_pops[1])
             new_pop = self.mutate(new_pop)

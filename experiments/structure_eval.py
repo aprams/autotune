@@ -28,8 +28,8 @@ N_BRANIN_ITERS = 100
 N_ITERS_PER_OPT = 4
 def worker(args):#i, depth, width):
     i, depth, width = args
-    def projection_fn(x, a, b, min_point, multiplier):
-        return math.fabs(beta.ppf(x, a, b) - min_point) * multiplier
+    def projection_fn(x, a, b, min_point, **kwargs):# multiplier):
+        return math.fabs(beta.ppf(x, a, b) - min_point)
 
 
     def gen_structured_space(depth=2, width=2, prefix=""):
@@ -78,7 +78,8 @@ def worker(args):#i, depth, width):
             idx = sorted(idx, key=lambda x: x[0])
             idx = reduce(lambda x, y: str(x[1]) + str(y[1]), idx) if len(idx) > 1 else str(idx[0][1])
             tmp_dict = {k: params[k] for k in list(params.keys()) if k.startswith(idx)}
-        projected_params = [1.0 + projection_fn(v, **structure_params[k]) for k, v in tmp_dict.items()]
+        projected_params = [(1.0 + projection_fn(v, **structure_params[k])) * structure_params[k]['multiplier']
+                            for k, v in tmp_dict.items()]
         result = reduce(lambda x, y: x * y, projected_params)
         return - result
 
