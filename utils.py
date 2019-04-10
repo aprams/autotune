@@ -67,8 +67,8 @@ def plot_results_multiple(np_results, dataset_idx=0, avg_datasets=False, t_0=0, 
                          use_log_scale_y=y_log)
 
 
-def plot_results(np_results, dataset_idx=0, avg_datasets=False, t_0=0, plot_ranges=True, use_log_scale_x=False,
-                 use_log_scale_y=False, save_file_name=None):
+def plot_results(np_results, X=None, dataset_idx=0, avg_datasets=False, t_0=0, plot_ranges=True, use_log_scale_x=False,
+                 use_log_scale_y=False, save_file_name=None, x_label="Optimization steps", y_label="Loss"):
     """
     Plot results for given dataset or averaged from given start t_0
     :param np_results: data to plot
@@ -87,13 +87,23 @@ def plot_results(np_results, dataset_idx=0, avg_datasets=False, t_0=0, plot_rang
 
         avg_min_losses, std_min_losses, lower_min_losses, upper_min_losses = \
             get_mean_std_min_losses_per_timestep(tmp_data, t_0=t_0)
-        plt.plot(range(t_0, t_0 + len(lower_min_losses)), avg_min_losses, label=optimizer, color=color)
+        _x = X
+        if _x is None:
+            _x = range(t_0, t_0 + len(lower_min_losses))
+        else:
+
+            _x = X[optimizer]
+            avg_min_x, _, _, _ = \
+                get_mean_std_min_losses_per_timestep(_x, t_0=t_0)
+            _x = avg_min_x
+            _x = np.cumsum(_x)
+        plt.plot(_x, avg_min_losses, label=optimizer, color=color)
         if plot_ranges:
-            plt.fill_between(x=range(t_0, t_0 + len(lower_min_losses)), y1=lower_min_losses,
+            plt.fill_between(x=_x, y1=lower_min_losses,
                              y2=upper_min_losses, alpha=0.3, color=color)
 
-    plt.xlabel("Optimization steps")
-    plt.ylabel("Loss")
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
     if use_log_scale_x:
         plt.xscale('log')
     if use_log_scale_y:
@@ -148,7 +158,7 @@ def results_to_numpy(optimizer_results, result_idx=1, negative=True):
             for classifier in opt_results:
                 results = np.array(opt_results[classifier])
                 results = np.array(results[..., result_idx], dtype=np.float32)
-                tmp_results[classifier] = -results
+                tmp_results[classifier] = -results if negative else results
             np_results[optimizer] = tmp_results
         else:
 

@@ -16,7 +16,7 @@ class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
                          n_iterations=n_iterations, verbose=verbose, random_seed=random_seed, name=name)
         self.n_init_points = n_init_points
         param_bounds = self._create_pbounds_from_param_space(hyper_param_list)
-        print("Param bounds: ", param_bounds)
+        #print("Param bounds: ", param_bounds)
         self.bo = BayesianOptimization(f=lambda **params: eval_fn(self.transform_raw_param_samples(pop=params)),
                                   pbounds=param_bounds,
                                   verbose=0,
