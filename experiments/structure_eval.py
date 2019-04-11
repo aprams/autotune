@@ -194,3 +194,6 @@ for k, r in w_d_idxd_results.items():
 
 with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'structure_eval_fns_per_timestep.pickle'), 'wb') as handle:
     pickle.dump(w_d_idxd_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, 'structure_eval_structure_params.pickle'), 'wb') as handle:
+    pickle.dump(w_d_idxd_structure_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
