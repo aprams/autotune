@@ -155,7 +155,7 @@ def worker(args):#i, depth, width):
 
 
 MIN_DEPTH = 0
-MAX_DEPTH = 3
+MAX_DEPTH = 4
 
 MIN_WIDTH = 1
 MAX_WIDTH = 3
