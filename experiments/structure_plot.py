@@ -12,6 +12,7 @@ with open(os.path.join(config.EXPERIMENT_RESULTS_FOLDER, prefix + '_eval_fns_per
     w_d_idxd_results = pickle.load(handle)
 
 print(w_d_idxd_results.keys())
+print(w_d_idxd_results[list(w_d_idxd_results.keys())[0]].keys())
 
 for k, eval_fns_per_timestep in w_d_idxd_results.items():
     print(k)

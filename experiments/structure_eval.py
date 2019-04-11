@@ -25,7 +25,7 @@ sample_callback_fn = None
 
 
 N_BRANIN_ITERS = 100
-N_ITERS_PER_OPT = 4
+N_ITERS_PER_OPT = 10
 def worker(args):#i, depth, width):
     i, depth, width = args
     def projection_fn(x, a, b, min_point, **kwargs):# multiplier):
@@ -68,7 +68,7 @@ def worker(args):#i, depth, width):
                                                 space=list(range(WIDTH))) for i in range(DEPTH)]
     structured_space, structured_tpe_space, structure_params = gen_structured_space(depth=DEPTH, width=WIDTH)
     structured_space = list(utils.flatten_list(structured_space)) + structured_space_idx
-
+    print(structure_params)
 
     def structured_eval_fn(params):
         tmp_dict = params
@@ -138,8 +138,8 @@ def worker(args):#i, depth, width):
     structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*3, gp_n_iter=25, gp_n_warmup=100000, name='gp_short'),
     #structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*4, gp_n_iter=100, gp_n_warmup=100000, name='gp_medium'),
     #structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*5, gp_n_iter=250, gp_n_warmup=100000),
-    structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*6),
-    #structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*7, n_EI_candidates=5, name='TPE_short'),
+    #structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*6),
+    structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*7, n_EI_candidates=5, name='TPE_short'),
     #structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*8, n_EI_candidates=100, name='TPE_long'),
     ]
 
@@ -150,30 +150,37 @@ def worker(args):#i, depth, width):
                                    o.cpu_time_per_opt_timestep, o.wall_time_per_opt_timestep))
     results['depth'] = depth
     results['width'] = width
+    results['structure_params'] = structure_params
     return results
 
 
 MIN_DEPTH = 0
-MAX_DEPTH = 5
+MAX_DEPTH = 3
 
-MIN_WIDTH = 2
-MAX_WIDTH = 5
+MIN_WIDTH = 1
+MAX_WIDTH = 3
 
 pool = mp.Pool(config.N_MP_PROCESSES)
 it_range = product(range(N_ITERS_PER_OPT), range(MIN_DEPTH, MAX_DEPTH+1), range(MIN_WIDTH, MAX_WIDTH+1))
 results = pool.map(worker, it_range)
 
 w_d_idxd_results = {}
+w_d_idxd_structure_params = {}
 for x in results:
     w = x['width']
     d = x['depth']
+    structure_params = x['structure_params']
+    print(structure_params)
     tmp_result = dict(x)
     del tmp_result['width']
     del tmp_result['depth']
+    del tmp_result['structure_params']
     k = frozenset({'width': w, 'depth': d}.items())
     if k not in w_d_idxd_results:
         w_d_idxd_results[k] = []
+        w_d_idxd_structure_params[k] = []
     w_d_idxd_results[k].append(tmp_result)
+    w_d_idxd_structure_params[k].append(structure_params)
 
 for k, r in w_d_idxd_results.items():
     transposed_results = {}
