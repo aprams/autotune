@@ -102,12 +102,18 @@ def plot_results(np_results, X=None, dataset_idx=0, avg_datasets=False, t_0=0, p
             plt.fill_between(x=_x, y1=lower_min_losses,
                              y2=upper_min_losses, alpha=0.3, color=color)
 
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
+    _x_label = x_label
+    _y_label = x_label
+
     if use_log_scale_x:
         plt.xscale('log')
+        _x_label += " (log scale)"
     if use_log_scale_y:
         plt.yscale('log')
+        _y_label += " (log scale)"
+
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
     plt.legend(loc='best')
     if save_file_name is not None:
         plt.savefig(os.path.join(config.PLOT_FOLDER, save_file_name))

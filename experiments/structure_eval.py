@@ -24,10 +24,12 @@ do_recreate_fun = False
 sample_callback_fn = None
 
 
-N_BRANIN_ITERS = 100
-N_ITERS_PER_OPT = 10
+    N_BRANIN_ITERS = 100
+    N_ITERS_PER_OPT = 10
+
 def worker(args):#i, depth, width):
     i, depth, width = args
+    print("Worker args; i: {0}, depth: {1}, width: {2}".format(i, depth, width))
     def projection_fn(x, a, b, min_point, **kwargs):# multiplier):
         return math.fabs(beta.ppf(x, a, b) - min_point)
 
@@ -68,7 +70,6 @@ def worker(args):#i, depth, width):
                                                 space=list(range(WIDTH))) for i in range(DEPTH)]
     structured_space, structured_tpe_space, structure_params = gen_structured_space(depth=DEPTH, width=WIDTH)
     structured_space = list(utils.flatten_list(structured_space)) + structured_space_idx
-    print(structure_params)
 
     def structured_eval_fn(params):
         tmp_dict = params
@@ -76,18 +77,21 @@ def worker(args):#i, depth, width):
         if not is_tpe:
             idx = {x: params[x] for x in params.keys() if type(x) == str and x.startswith('idx_')}.items()
             idx = sorted(idx, key=lambda x: x[0])
-            idx = reduce(lambda x, y: str(x[1]) + str(y[1]), idx) if len(idx) > 1 else str(idx[0][1])
+            idx = [x[1] for x in idx]
+            idx = reduce(lambda x, y: str(x) + str(y), idx) if len(idx) > 1 else str(idx[0])
             tmp_dict = {k: params[k] for k in list(params.keys()) if k.startswith(idx)}
+            #print(idx)
+            #print(tmp_dict)
         projected_params = [(1.0 + projection_fn(v, **structure_params[k])) * structure_params[k]['multiplier']
                             for k, v in tmp_dict.items()]
+        #print(projected_params)
         result = reduce(lambda x, y: x * y, projected_params)
+        #print(result)
+        assert(result <= 100)
         return - result
 
 
     def structured_ga_search(n_iterations=2000, random_seed=None):
-        print("-" * 53)
-        print("GA")
-
         optimizer = ga_search.GeneticAlgorithmSearch(structured_space, structured_eval_fn, callback_fn=sample_callback_fn,
                                                      n_pops=8, n_iterations=n_iterations, elite_pops_fraction=0.2,
                                                      random_seed=random_seed)
@@ -97,9 +101,6 @@ def worker(args):#i, depth, width):
 
 
     def structured_gp_search(n_iterations=20, gp_n_warmup=100000, gp_n_iter=25, n_restarts_optimizer=5, name='gp', random_seed=None):
-        print("-" * 53)
-        print("GP")
-
         gp_params = {"alpha": 1e-5, "n_restarts_optimizer": n_restarts_optimizer}
         optimizer = gp_search.GaussianProcessOptimizer(structured_space, structured_eval_fn, callback_fn=sample_callback_fn,
                                                        n_iterations=n_iterations, gp_n_warmup=gp_n_warmup,
@@ -110,9 +111,6 @@ def worker(args):#i, depth, width):
 
 
     def structured_random_search(n_iterations=2000, random_seed=None):
-        print("-" * 53)
-        print("RS")
-
         optimizer = random_search.RandomSearchOptimizer(structured_space, structured_eval_fn, callback_fn=sample_callback_fn,
                                                         n_iterations=n_iterations, random_seed=random_seed)
         _ = optimizer.maximize()
@@ -121,9 +119,6 @@ def worker(args):#i, depth, width):
 
 
     def structured_tpe_search(n_iterations=2000, n_EI_candidates=24, name='TPE', random_seed=None):
-        print("-" * 53)
-        print("TPE")
-
         optimizer = tpe_search.TPEOptimizer(structured_tpe_space, structured_eval_fn, callback_fn=sample_callback_fn,
                                             n_iterations=n_iterations, n_EI_candidates=n_EI_candidates,
                                             name=name, random_seed=random_seed)
@@ -135,12 +130,12 @@ def worker(args):#i, depth, width):
     optimizers = [
     structured_random_search(n_iterations=N_BRANIN_ITERS, random_seed=i),
     structured_ga_search(n_iterations=N_BRANIN_ITERS, random_seed=i*2),
-    structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*3, gp_n_iter=25, gp_n_warmup=100000, name='gp_short'),
-    #structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*4, gp_n_iter=100, gp_n_warmup=100000, name='gp_medium'),
-    #structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*5, gp_n_iter=250, gp_n_warmup=100000),
-    #structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*6),
+    structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*3, gp_n_iter=25, gp_n_warmup=10000, name='gp_short'),
+    structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*4, gp_n_iter=100, gp_n_warmup=100000, name='gp_medium'),
+    structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*5, gp_n_iter=250, gp_n_warmup=100000),
+    structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*6),
     structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*7, n_EI_candidates=5, name='TPE_short'),
-    #structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*8, n_EI_candidates=100, name='TPE_long'),
+    structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*8, n_EI_candidates=100, name='TPE_long'),
     ]
 
 
@@ -155,13 +150,14 @@ def worker(args):#i, depth, width):
 
 
 MIN_DEPTH = 0
-MAX_DEPTH = 4
+MAX_DEPTH = 3
 
-MIN_WIDTH = 1
+MIN_WIDTH = 3
 MAX_WIDTH = 3
 
 pool = mp.Pool(config.N_MP_PROCESSES)
 it_range = product(range(N_ITERS_PER_OPT), range(MIN_DEPTH, MAX_DEPTH+1), range(MIN_WIDTH, MAX_WIDTH+1))
+print("Total combinations: ", N_ITERS_PER_OPT * (MAX_DEPTH - MIN_DEPTH + 1) * (MAX_WIDTH - MIN_WIDTH + 1))
 results = pool.map(worker, it_range)
 
 w_d_idxd_results = {}
