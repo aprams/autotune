@@ -32,13 +32,14 @@ _OPTIMIZER_TO_COLOR_DICT = {
     'RandomSearch': '#1f77b4',
 }
 
-def get_color_for_optimizer(opt_name):
-    corrected_opt_name = None
-    for k in list(_OPTIMIZER_TO_COLOR_DICT.keys()):
-        if k.lower() == opt_name.lower():
-            corrected_opt_name = k
-            break
-    if corrected_opt_name is None:
-        raise Exception("Unknown Optimizer name")
 
-    return _OPTIMIZER_TO_COLOR_DICT[corrected_opt_name]
+_OPTIMIZER_DISPLAY_NAMES = {
+    'GA' : 'GA',
+    'RandomSearch' : 'RS',
+    'gp_short' : 'GP_short',
+    'gp_medium' : 'GP_medium',
+    'gp_long' : 'GP_long',
+    'tpe_short' : 'TPE_short',
+    'tpe_medium' : 'TPE_medium',
+    'tpe_long' : 'TPE_long',
+}

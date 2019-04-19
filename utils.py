@@ -10,6 +10,35 @@ import collections
 PLOT_FOLDER = config.PLOT_FOLDER
 
 
+def get_display_names_for_optimizers(opt_names):
+    return [get_display_name_for_optimizer(name) for name in opt_names]
+
+
+def get_display_name_for_optimizer(opt_name):
+    corrected_opt_name = None
+    for k in list(config._OPTIMIZER_DISPLAY_NAMES.keys()):
+        if k.lower() == opt_name.lower():
+            corrected_opt_name = config._OPTIMIZER_DISPLAY_NAMES[k]
+            break
+    if corrected_opt_name is None:
+        raise Exception("Unknown Optimizer name")
+
+    return corrected_opt_name
+
+
+def get_color_for_optimizer(opt_name):
+    corrected_opt_name = None
+    for k in list(config._OPTIMIZER_TO_COLOR_DICT.keys()):
+        if k.lower() == opt_name.lower():
+            corrected_opt_name = k
+            break
+    if corrected_opt_name is None:
+        raise Exception("Unknown Optimizer name")
+
+    return config._OPTIMIZER_TO_COLOR_DICT[corrected_opt_name]
+
+
+
 def prune_invalid_params_for_classifier(params, classifier):
     pruned_params = {}
     valid_string_starts = [classifier, 'preprocessing', 'pca']
@@ -58,8 +87,8 @@ def avg_rank_plot_per_timestep(eval_fns_per_timestep, save_path, legend_loc='bes
     for i in range(len(eval_fns_per_timestep.keys())):
         k = list(eval_fns_per_timestep.keys())[i]
         avg_rank_optimizer_dict[k] = avg_rank[i]
-        color = config.get_color_for_optimizer(k)
-        plt.plot(avg_rank_optimizer_dict[k], label=k, color=color)
+        color = get_color_for_optimizer(k)
+        plt.plot(avg_rank_optimizer_dict[k], label=get_display_name_for_optimizer(k), color=color)
     plt.legend(loc=legend_loc)
     plt.ylabel('Average rank per timestep')
     plt.xlabel('n_iterations')
@@ -70,8 +99,9 @@ def cpu_time_plot_per_optimizer(results, save_path, y_scale='log'):
     cpu_times = results_to_numpy(results, 2)
     cpu_times_avg = {x: np.mean(np.fabs(cpu_times[x])) for x in cpu_times}
     plt.figure(figsize=(10, 5))
-    colors = [config.get_color_for_optimizer(optimizer) for optimizer in list(cpu_times_avg.keys())]
-    plt.bar(range(len(cpu_times_avg)), cpu_times_avg.values(), tick_label=list(cpu_times_avg.keys()), color=colors)
+    colors = [get_color_for_optimizer(optimizer) for optimizer in list(cpu_times_avg.keys())]
+    plt.bar(range(len(cpu_times_avg)), cpu_times_avg.values(),
+            tick_label=get_display_names_for_optimizers(list(cpu_times_avg.keys())), color=colors)
     plt.yscale(y_scale)
     _y_label = 'CPU time in seconds'
     if y_scale == 'log':
@@ -109,11 +139,8 @@ def plot_results(np_results, X=None, dataset_idx=0, avg_datasets=False, t_0=0, p
     print("Plots, averaged={0} ".format(avg_datasets) +
           (", dataset_idx={0}".format(dataset_idx) if avg_datasets is False else ""))
     plt.figure()
-    ax = plt.gca()
     for optimizer in np_results.keys():
-        color = config.get_color_for_optimizer(optimizer)
-        #color = next(ax._get_lines.prop_cycler)['color']
-        print(optimizer + ", " + color)
+        color = get_color_for_optimizer(optimizer)
         tmp_data = np_results[optimizer] if (avg_datasets or dataset_idx==None) else \
             np_results[optimizer][dataset_idx]
 
@@ -129,7 +156,7 @@ def plot_results(np_results, X=None, dataset_idx=0, avg_datasets=False, t_0=0, p
                 get_mean_std_min_losses_per_timestep(_x, t_0=t_0)
             _x = avg_min_x
             _x = np.cumsum(_x)
-        plt.plot(_x, avg_min_losses, label=optimizer, color=color)
+        plt.plot(_x, avg_min_losses, label=get_display_name_for_optimizer(optimizer), color=color)
         if plot_ranges:
             plt.fill_between(x=_x, y1=lower_min_losses,
                              y2=upper_min_losses, alpha=0.3, color=color)
@@ -144,8 +171,8 @@ def plot_results(np_results, X=None, dataset_idx=0, avg_datasets=False, t_0=0, p
         plt.yscale('log')
         _y_label += " (log scale)"
 
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
+    plt.xlabel(_x_label)
+    plt.ylabel(_y_label)
     plt.legend(loc='best')
     if save_file_name is not None:
         plt.savefig(os.path.join(config.PLOT_FOLDER, save_file_name))
