@@ -116,8 +116,8 @@ def worker(i):
     branin_ga_search(n_iterations=N_BRANIN_ITERS, random_seed=i*2),
     branin_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*3, gp_n_iter=25, gp_n_warmup=1000, name='gp_short'),
     branin_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*4, gp_n_iter=100, gp_n_warmup=10000, name='gp_medium'),
-    branin_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*5, gp_n_iter=250, gp_n_warmup=100000),
-    branin_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*6),
+    branin_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*5, gp_n_iter=250, gp_n_warmup=100000, name='gp_long'),
+    branin_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*6, name='TPE_medium'),
     branin_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*7, n_EI_candidates=5, name='TPE_short'),
     branin_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*8, n_EI_candidates=100, name='TPE_long'),
     ]

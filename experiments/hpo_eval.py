@@ -17,13 +17,13 @@ from autotune.optimizers import random_search
 
 N_DATASETS = 42  # 42
 N_REPS_PER_OPTIMIZER = 10  # 10
-N_OPT_STEPS = 75  # 100
+N_OPT_STEPS = 100  # 100
 
 opt_and_params = [(random_search.RandomSearchOptimizer, {}),
                   #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 5, 'name': 'TPE_short'}),
                   (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'name': 'TPE'}),
                   #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 50, 'name': 'TPE_long'}),
-                  #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 25, 'name': 'GP_short'}),
+                  (gp_search.GaussianProcessOptimizer, {'gp_n_iter': 25, 'gp_n_warmup': 1000, 'name': 'GP_short'}),
                   #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 100, 'name': 'GP_medium'}),
                   #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 250, 'name': 'GP_long'}),
                   (ga_search.GeneticAlgorithmSearch, {}),

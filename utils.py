@@ -51,6 +51,36 @@ def flatten_list(li):
         yield li
 
 
+def avg_rank_plot_per_timestep(eval_fns_per_timestep, save_path, legend_loc='best'):
+    avg_rank_optimizer_dict = {}
+    stacked_eval_fns_per_timstep = np.stack(list(eval_fns_per_timestep.values()), axis=0)
+    avg_rank = np.mean(np.argsort(stacked_eval_fns_per_timstep, axis=0), axis=1) + 1
+    for i in range(len(eval_fns_per_timestep.keys())):
+        k = list(eval_fns_per_timestep.keys())[i]
+        avg_rank_optimizer_dict[k] = avg_rank[i]
+        color = config.get_color_for_optimizer(k)
+        plt.plot(avg_rank_optimizer_dict[k], label=k, color=color)
+    plt.legend(loc=legend_loc)
+    plt.ylabel('Average rank per timestep')
+    plt.xlabel('n_iterations')
+    plt.savefig(save_path)
+
+def cpu_time_plot_per_optimizer(results, save_path, y_scale='log'):
+    # CPU time plotting:
+    cpu_times = results_to_numpy(results, 2)
+    cpu_times_avg = {x: np.mean(np.fabs(cpu_times[x])) for x in cpu_times}
+    plt.figure(figsize=(10, 5))
+    colors = [config.get_color_for_optimizer(optimizer) for optimizer in list(cpu_times_avg.keys())]
+    plt.bar(range(len(cpu_times_avg)), cpu_times_avg.values(), tick_label=list(cpu_times_avg.keys()), color=colors)
+    plt.yscale(y_scale)
+    _y_label = 'CPU time in seconds'
+    if y_scale == 'log':
+        _y_label += " (log)"
+    plt.ylabel(_y_label)
+    plt.xlabel('Optimizer')
+    plt.savefig(save_path)
+
+
 def plot_results_multiple(np_results, dataset_idx=0, avg_datasets=False, t_0=0, plot_ranges=True,
                           save_file_name_prefix=None):
     for x_log in [True, False]:
@@ -81,7 +111,9 @@ def plot_results(np_results, X=None, dataset_idx=0, avg_datasets=False, t_0=0, p
     plt.figure()
     ax = plt.gca()
     for optimizer in np_results.keys():
-        color = next(ax._get_lines.prop_cycler)['color']
+        color = config.get_color_for_optimizer(optimizer)
+        #color = next(ax._get_lines.prop_cycler)['color']
+        print(optimizer + ", " + color)
         tmp_data = np_results[optimizer] if (avg_datasets or dataset_idx==None) else \
             np_results[optimizer][dataset_idx]
 
