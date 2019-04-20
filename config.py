@@ -21,6 +21,10 @@ PLOT_FOLDER = os.path.join(ROOT_FOLDER, "experiments/visualizations/plots/")
 PLOT_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), PLOT_FOLDER)
 os.makedirs(PLOT_FOLDER, exist_ok=True)
 
+_OPTIMIZER_CONVERSION_NAMES = {
+    'TPE' : 'TPE_short'
+}
+
 _OPTIMIZER_TO_COLOR_DICT = {
     'GA' : '#ff7f0e',
     'gp_short': '#d62728',

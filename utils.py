@@ -10,30 +10,45 @@ import collections
 PLOT_FOLDER = config.PLOT_FOLDER
 
 
+def convert_name_for_optimizer(opt_name):
+    corrected_opt_name = None
+    for k in list(config._OPTIMIZER_CONVERSION_NAMES.keys()):
+        if k.lower() == opt_name.lower():
+            corrected_opt_name = config._OPTIMIZER_CONVERSION_NAMES[k]
+            break
+    if corrected_opt_name is not None:
+        print("Corrected {0} to {1}".format(opt_name, corrected_opt_name))
+        return corrected_opt_name
+    else:
+        return opt_name
+
+
 def get_display_names_for_optimizers(opt_names):
-    return [get_display_name_for_optimizer(name) for name in opt_names]
+    return [get_display_name_for_optimizer(convert_name_for_optimizer(name)) for name in opt_names]
 
 
 def get_display_name_for_optimizer(opt_name):
+    opt_name = convert_name_for_optimizer(opt_name)
     corrected_opt_name = None
     for k in list(config._OPTIMIZER_DISPLAY_NAMES.keys()):
         if k.lower() == opt_name.lower():
             corrected_opt_name = config._OPTIMIZER_DISPLAY_NAMES[k]
             break
     if corrected_opt_name is None:
-        raise Exception("Unknown Optimizer name")
+        raise Exception("Unknown Optimizer name: ", opt_name)
 
     return corrected_opt_name
 
 
 def get_color_for_optimizer(opt_name):
+    opt_name = convert_name_for_optimizer(opt_name)
     corrected_opt_name = None
     for k in list(config._OPTIMIZER_TO_COLOR_DICT.keys()):
         if k.lower() == opt_name.lower():
             corrected_opt_name = k
             break
     if corrected_opt_name is None:
-        raise Exception("Unknown Optimizer name")
+        raise Exception("Unknown Optimizer name: ", opt_name)
 
     return config._OPTIMIZER_TO_COLOR_DICT[corrected_opt_name]
 

@@ -9,19 +9,19 @@ import config
 import os
 import multiprocessing as mp
 
-from hpo_dataset import hpo_utils
-from hpo_space import tpe_combined_spaces, tpe_spaces
+from experiments import hpo_utils
+from experiments.hpo_dataset.hpo_space import tpe_combined_spaces, tpe_spaces
 from autotune.optimizers import ga_search, tpe_search, gp_search
 from autotune.optimizers import random_search
 
 
 N_DATASETS = 42  # 42
-N_REPS_PER_OPTIMIZER = 10  # 10
-N_OPT_STEPS = 100  # 100
+N_REPS_PER_OPTIMIZER = 4  # 10
+N_OPT_STEPS = 30  # 100
 
 opt_and_params = [(random_search.RandomSearchOptimizer, {}),
                   #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 5, 'name': 'TPE_short'}),
-                  (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'name': 'TPE'}),
+                  (tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'name': 'TPE_short'}),
                   #(tpe_search.TPEOptimizer, {'n_startup_jobs': 5, 'n_EI_candidates': 50, 'name': 'TPE_long'}),
                   (gp_search.GaussianProcessOptimizer, {'gp_n_iter': 25, 'gp_n_warmup': 1000, 'name': 'GP_short'}),
                   #(gp_search.GaussianProcessOptimizer, {'gp_n_iter': 100, 'name': 'GP_medium'}),
@@ -84,7 +84,6 @@ for classifier in classifier_indexed_params.keys():
                 new_optimizer_results[classifier][opt_name][dataset_idx][i] = pool_results[i][classifier][opt_name][dataset_idx]
 
 optimizer_results = new_optimizer_results
-
 
 # Combined classifier and param search
 

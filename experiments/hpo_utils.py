@@ -1,7 +1,7 @@
 import os
 import config
 import pickle
-from preprocess_hpo_dataset import create_index_param_space
+from hpo_preprocess import create_index_param_space
 from autotune import param_space
 
 
