@@ -17,15 +17,15 @@ class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
         self.n_init_points = n_init_points
         param_bounds = self._create_pbounds_from_param_space(hyper_param_list)
         #print("Param bounds: ", param_bounds)
-        self.bo = BayesianOptimization(f=lambda **params: eval_fn(self.transform_raw_param_samples(pop=params)),
-                                  pbounds=param_bounds,
-                                  verbose=0,
-                                  random_state=random_seed)
+        self.bo = BayesianOptimization(f=lambda **params: eval_fn(self._transform_raw_param_samples(pop=params)),
+                                       pbounds=param_bounds,
+                                       verbose=0,
+                                       random_state=random_seed)
 
         self.bo._acqkw = {'n_warmup': gp_n_warmup, 'n_iter': gp_n_iter}
         self.gp_params = gp_params if gp_params is not None else {"alpha": 1e-3, "n_restarts_optimizer": 5}
 
-    def transform_raw_param_samples(self, pop):
+    def _transform_raw_param_samples(self, pop):
         param_dict = {}
         for i in range(len(self.hyper_param_list)):
             cur_hyp_param = self.hyper_param_list[i]

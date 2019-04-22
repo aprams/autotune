@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import config
-from utils import plot_results, plot_results_multiple, results_to_numpy, cpu_time_plot_per_optimizer, \
-    avg_rank_plot_per_timestep
+from utils import plot_results, plot_results_multiple, results_to_numpy, plot_cpu_time_per_optimizer, \
+    plot_avg_rank_per_timestep
 
 
 prefix = "branin"
@@ -28,19 +28,19 @@ filtered_eval_fns.pop('TPE_medium', None)
 filtered_eval_fns.pop('tpe_medium', None)
 filtered_eval_fns.pop('gp_long', None)
 filtered_eval_fns.pop('TPE_long', None)
-avg_rank_plot_per_timestep(filtered_eval_fns, save_path=avg_rank_plot_save_path, legend_loc="lower left")
+plot_avg_rank_per_timestep(filtered_eval_fns, save_path=avg_rank_plot_save_path, legend_loc="lower left")
 
 
 # CPU time plotting:
 cpu_time_plot_save_path = os.path.join(config.PLOT_FOLDER, "branin/cpu_comparison")
-cpu_time_plot_per_optimizer(results, save_path=cpu_time_plot_save_path)
+plot_cpu_time_per_optimizer(results, save_path=cpu_time_plot_save_path)
 
 cpu_time_plot_save_path_gp = cpu_time_plot_save_path + "_gp"
-cpu_time_plot_per_optimizer({x: results[x] for x in results.keys() if x.lower().startswith('gp')},
+plot_cpu_time_per_optimizer({x: results[x] for x in results.keys() if x.lower().startswith('gp')},
                             save_path=cpu_time_plot_save_path_gp, y_scale='linear')
 
 cpu_time_plot_save_path_tpe = cpu_time_plot_save_path + "_tpe"
-cpu_time_plot_per_optimizer({x: results[x] for x in results.keys() if x.lower().startswith('tpe')},
+plot_cpu_time_per_optimizer({x: results[x] for x in results.keys() if x.lower().startswith('tpe')},
                             save_path=cpu_time_plot_save_path_tpe, y_scale='linear')
 
 

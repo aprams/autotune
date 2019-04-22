@@ -17,12 +17,12 @@ class TPEOptimizer(AbstractHyperParameterOptimizer):
                          random_seed=random_seed, name=name)
         is_hpo_space = False if type(hyper_param_list) is list else True
         self.tpe_space = self._create_tpe_space_from_param_space(hyper_param_list) if not is_hpo_space else hyper_param_list
-        self.is_hpo_space = is_hpo_space
+        self._is_hpo_space = is_hpo_space
         self.name = name
 
         tpe.suggest = functools.partial(tpe.suggest, n_startup_jobs=n_startup_jobs, n_EI_candidates=n_EI_candidates)
 
-    def transform_raw_param_samples(self, pop):
+    def _transform_raw_param_samples(self, pop):
         #print("TPE params:", pop.keys())
         param_dict = {}
         for i in range(len(self.hyper_param_list)):

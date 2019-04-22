@@ -12,7 +12,7 @@ def softmax(x):
     return e_x / e_x.sum()
 
 
-class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
+class GeneticAlgorithmOptimizer(AbstractHyperParameterOptimizer):
     name = "GA"
 
     def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable=None, n_iterations=None,
@@ -20,27 +20,26 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
         super().__init__(hyper_param_list=hyper_param_list, eval_fn=eval_fn, callback_fn=callback_fn,
                          n_iterations=n_iterations, verbose=verbose, random_seed=random_seed, name=name)
         self.n_pops = n_pops
-        self.pops = self.gen_random_pops(self.n_pops)
+        self.pops = self._gen_random_pops(self.n_pops)
         self.best_pops = self.pops
         self.n_elite_pops = int(self.n_pops * elite_pops_fraction)
         self.n_unique_samples = n_iterations
-        self.cur_gen_pops = []
-        self.last_tested_pop_result = -np.inf
+        self._last_tested_pop_result = -np.inf
 
     def _create_hyperparam_set_generator(self):
-        return self.ga_search
+        return self._ga_search
 
-    def run_pop_policy(self, pop):
+    def _run_pop_policy(self, pop):
         """
         Evaluates a single pop
         :param pop:
         :return:
         """
-        pop_params = self.transform_raw_param_samples_for_pop(pop)
+        pop_params = self._transform_raw_param_samples_for_pop(pop)
         param_eval_metric = self.eval_fn(pop_params)
         return param_eval_metric
 
-    def crossover(self, pop1, pop2):
+    def _crossover(self, pop1, pop2):
         """
         Breeds two pops
         :return: new pop, mix of the parents
@@ -49,7 +48,7 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
         new_pop = np.where(pop_idx, pop1, pop2)
         return new_pop
 
-    def mutate(self, pop, rate=0.3):
+    def _mutate(self, pop, rate=0.3):
         """
         Mutates a single pop with the given rate
         :param pop: pop to mutate
@@ -57,11 +56,11 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
         :return: mutated pop
         """
         rand_results = np.random.rand(len(pop))
-        rand_pop = self.gen_random_pops(1)[0]  # np.random.randint(action_space_size, size=[len(pop)])
+        rand_pop = self._gen_random_pops(1)[0]  # np.random.randint(action_space_size, size=[len(pop)])
         pop = np.where(rand_results > rate, pop, rand_pop)
         return pop
 
-    def transform_raw_param_samples_for_pop(self, pop):
+    def _transform_raw_param_samples_for_pop(self, pop):
         """
         Generates a param_dict from a pop's genes
         :param pop: pop to get param_dict for
@@ -73,7 +72,7 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
                 self.hyper_param_list[i].transform_raw_sample(pop[i])
         return param_dict
 
-    def gen_random_pops(self, n_pops):
+    def _gen_random_pops(self, n_pops):
         """
         Generates a number of randomly initialized pops
         :param n_pops: number of pops to generate
@@ -85,7 +84,7 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
             rand_pops += [pop]
         return np.array(rand_pops)
 
-    def breed_new_generation(self, pop_losses):
+    def _breed_new_generation(self, pop_losses):
         n_pops = len(self.pops)
         pops_shape = [len(self.pops), len(self.pops[0])]
         mutated_pops = np.zeros(shape=pops_shape, dtype=np.float32)
@@ -95,8 +94,8 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
         for i in np.arange(n_pops - self.n_elite_pops):
             crossover_pop_idx = np.random.choice(pops_shape[0], 2, p=softmax(pop_losses)+1e-10, replace=False) #/ np.sum(pop_losses))
             crossover_pops = self.pops[crossover_pop_idx]
-            new_pop = self.crossover(crossover_pops[0], crossover_pops[1])
-            new_pop = self.mutate(new_pop)
+            new_pop = self._crossover(crossover_pops[0], crossover_pops[1])
+            new_pop = self._mutate(new_pop)
             mutated_pops[i] = new_pop
 
         mutated_pops[-self.n_elite_pops:] = self.pops[best_pops_idx]
@@ -105,16 +104,16 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
 
     def _add_sampled_point(self, hyperparameter_set: list, eval_metric: float):
         super()._add_sampled_point(hyperparameter_set, eval_metric)
-        self.last_tested_pop_result = eval_metric
+        self._last_tested_pop_result = eval_metric
 
-    def get_cached_result(self, pop):
+    def _get_cached_result(self, pop):
         pop_idx = frozenset(pop.items())
         if pop_idx in self.params_to_results_dict.keys():
             return self.params_to_results_dict[pop_idx]
         else:
             return None
 
-    def ga_search(self):
+    def _ga_search(self):
         """
         Computes the optimal parameters for a dict of data dicts (indexed by image_size) using GAs
         :param param_eval_fn: function which evaluates a given set of parameters on a given dataset
@@ -133,12 +132,12 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
             # Run environment for pop
             for pop_idx in np.arange(self.n_pops):
                 pop = self.pops[pop_idx]
-                transformed_pop = self.transform_raw_param_samples_for_pop(pop)
-                cached_result = self.get_cached_result(transformed_pop)
+                transformed_pop = self._transform_raw_param_samples_for_pop(pop)
+                cached_result = self._get_cached_result(transformed_pop)
                 if cached_result is None:
                     n_unique_pop_counter += 1
                     yield transformed_pop
-                    loss = self.last_tested_pop_result
+                    loss = self._last_tested_pop_result
                 else:
                     loss = cached_result
                 pop_losses[pop_idx] = loss
@@ -148,4 +147,4 @@ class GeneticAlgorithmSearch(AbstractHyperParameterOptimizer):
             #print("Average loss in episode {}: {:0.5f}".format(i_generation, np.sum(pop_losses) / self.n_pops))
             #print("Best loss in episode {}: {:0.5f}".format(i_generation, np.max(pop_losses)))
 
-            self.breed_new_generation(pop_losses=pop_losses)
+            self._breed_new_generation(pop_losses=pop_losses)

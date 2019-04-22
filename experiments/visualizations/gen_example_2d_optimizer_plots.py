@@ -23,8 +23,8 @@ def example_2d_ga_search(n_iterations=2000):
     np.random.seed(0)
     random.seed(0)
 
-    optimizer = ga_search.GeneticAlgorithmSearch(example_2d_params, example_2d_eval_fn, callback_fn=sample_callback_fn,
-                                                 n_pops=8, n_iterations=n_iterations, elite_pops_fraction=0.2)
+    optimizer = ga_search.GeneticAlgorithmOptimizer(example_2d_params, example_2d_eval_fn, callback_fn=sample_callback_fn,
+                                                    n_pops=8, n_iterations=n_iterations, elite_pops_fraction=0.2)
     _ = optimizer.maximize()
 
     return optimizer

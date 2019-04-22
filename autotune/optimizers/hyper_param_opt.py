@@ -19,10 +19,10 @@ class AbstractHyperParameterOptimizer(ABC):
         self.wall_time_per_opt_timestep = []
         self.verbose = verbose
         self.name = name
-        self.should_call_eval_fn = should_call_eval_fn
+        self._should_call_eval_fn = should_call_eval_fn
 
-        self.last_wall_time = None
-        self.last_cpu_time = None
+        self._last_wall_time = None
+        self._last_cpu_time = None
         self.random_seed = random_seed
         self.random_state = np.random.RandomState(random_seed)
 
@@ -44,7 +44,7 @@ class AbstractHyperParameterOptimizer(ABC):
         self._on_pre_hyp_opt_step()
         for next_hyperparam_set in generator():
             self._on_post_hyp_opt_step()
-            if self.should_call_eval_fn:
+            if self._should_call_eval_fn:
                 eval_metric = self.eval_fn(next_hyperparam_set)
 
                 self._add_sampled_point(next_hyperparam_set, eval_metric)
@@ -74,10 +74,10 @@ class AbstractHyperParameterOptimizer(ABC):
         return sorted_results
 
     def _on_pre_hyp_opt_step(self):
-        self.last_cpu_time = time.clock()
-        self.last_wall_time = time.time()
+        self._last_cpu_time = time.clock()
+        self._last_wall_time = time.time()
 
     def _on_post_hyp_opt_step(self):
-        self.cpu_time_per_opt_timestep += [time.clock() - self.last_cpu_time]
-        self.wall_time_per_opt_timestep += [time.time() - self.last_wall_time]
+        self.cpu_time_per_opt_timestep += [time.clock() - self._last_cpu_time]
+        self.wall_time_per_opt_timestep += [time.time() - self._last_wall_time]
 

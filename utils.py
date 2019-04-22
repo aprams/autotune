@@ -4,6 +4,7 @@ import config
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+sns.set()
 import math
 import collections
 
@@ -95,10 +96,14 @@ def flatten_list(li):
         yield li
 
 
-def avg_rank_plot_per_timestep(eval_fns_per_timestep, save_path, legend_loc='best'):
+def plot_avg_rank_per_timestep(eval_fns_per_timestep, save_path, legend_loc='best'):
     avg_rank_optimizer_dict = {}
-    stacked_eval_fns_per_timstep = np.stack(list(eval_fns_per_timestep.values()), axis=0)
-    avg_rank = np.mean(np.argsort(stacked_eval_fns_per_timstep, axis=0), axis=1) + 1
+    stacked_eval_fns_per_timstep = np.stack([x for x in #get_mean_std_min_losses_per_timestep(x)[0] for x in
+                                             eval_fns_per_timestep.values()], axis=0)
+    mean_axes = tuple(list(range(1, len(stacked_eval_fns_per_timstep.shape) - 1)))
+    print(mean_axes)
+    print("stacked_eval_fns_per_timstep shape", stacked_eval_fns_per_timstep.shape)
+    avg_rank = np.mean(np.argsort(np.argsort(stacked_eval_fns_per_timstep, axis=0), axis=0), axis=mean_axes) + 1
     for i in range(len(eval_fns_per_timestep.keys())):
         k = list(eval_fns_per_timestep.keys())[i]
         avg_rank_optimizer_dict[k] = avg_rank[i]
@@ -109,11 +114,18 @@ def avg_rank_plot_per_timestep(eval_fns_per_timestep, save_path, legend_loc='bes
     plt.xlabel('n_iterations')
     plt.savefig(save_path)
 
-def cpu_time_plot_per_optimizer(results, save_path, y_scale='log'):
+
+def plot_cpu_time_per_optimizer(results, save_path, y_scale='log'):
     # CPU time plotting:
+    from matplotlib import rcParams
+    rcParams.update({'figure.autolayout': True})
     cpu_times = results_to_numpy(results, 2)
     cpu_times_avg = {x: np.mean(np.fabs(cpu_times[x])) for x in cpu_times}
-    plt.figure(figsize=(10, 5))
+    figsize = None
+    if len(list(cpu_times_avg.keys())) > 4:
+        figsize=(10, 5)
+    plt.figure(figsize=figsize)
+    plt.tight_layout()
     colors = [get_color_for_optimizer(optimizer) for optimizer in list(cpu_times_avg.keys())]
     plt.bar(range(len(cpu_times_avg)), cpu_times_avg.values(),
             tick_label=get_display_names_for_optimizers(list(cpu_times_avg.keys())), color=colors)
@@ -177,7 +189,7 @@ def plot_results(np_results, X=None, dataset_idx=0, avg_datasets=False, t_0=0, p
                              y2=upper_min_losses, alpha=0.3, color=color)
 
     _x_label = x_label
-    _y_label = x_label
+    _y_label = y_label
 
     if use_log_scale_x:
         plt.xscale('log')
