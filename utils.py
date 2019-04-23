@@ -115,7 +115,7 @@ def plot_avg_rank_per_timestep(eval_fns_per_timestep, save_path, legend_loc='bes
     plt.savefig(save_path)
 
 
-def plot_cpu_time_per_optimizer(results, save_path, y_scale='log'):
+def plot_cpu_time_per_optimizer(results, save_path=None, y_scale='log'):
     # CPU time plotting:
     from matplotlib import rcParams
     rcParams.update({'figure.autolayout': True})
@@ -135,7 +135,10 @@ def plot_cpu_time_per_optimizer(results, save_path, y_scale='log'):
         _y_label += " (log)"
     plt.ylabel(_y_label)
     plt.xlabel('Optimizer')
-    plt.savefig(save_path)
+    if save_path is not None:
+        plt.savefig(save_path)
+    else:
+        plt.show()
 
 
 def plot_results_multiple(np_results, dataset_idx=0, avg_datasets=False, t_0=0, plot_ranges=True,

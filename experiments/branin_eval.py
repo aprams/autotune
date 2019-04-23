@@ -5,6 +5,7 @@ import utils
 import random
 import config
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import pickle
 
@@ -36,7 +37,7 @@ if __name__ == '__main__':
         # Make the plot
         fig = plt.figure()
         ax = fig.gca(projection='3d')
-        ax.plot_trisurf(branin_samples[:, 0], branin_samples[:, 1], branin_samples[:, 2], cmap=plt.cm.jet, linewidth=0.2)
+        ax.plot_trisurf(branin_samples[:, 0], branin_samples[:, 1], branin_samples[:, 2], cmap=plt.cm.jet, linewidth=0.0)
 
         ax.view_init(30, -135)
 
@@ -48,7 +49,6 @@ if __name__ == '__main__':
         ax.set_yticks([0, 5, 10, 15])
 
         plt.savefig(os.path.join(config.PLOT_FOLDER, './branin_fun'))
-
 
     def branin_grid_search(random_seed=None):
         print("-" * 53)
