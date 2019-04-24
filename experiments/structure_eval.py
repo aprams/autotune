@@ -26,11 +26,12 @@ if __name__ == '__main__':
 
 
     N_BRANIN_ITERS = 100
-    N_ITERS_PER_OPT = 10
+    N_ITERS_PER_OPT = 20
 
     def worker(args):#i, depth, width):
         try:
             i, depth, width = args
+            random.seed(i)
             print("Worker args; i: {0}, depth: {1}, width: {2}".format(i, depth, width))
             def projection_fn(x, a, b, min_point, **kwargs):# multiplier):
                 return math.fabs(beta.ppf(x, a, b) - min_point)
@@ -130,11 +131,11 @@ if __name__ == '__main__':
             optimizers = [
             structured_random_search(n_iterations=N_BRANIN_ITERS, random_seed=i),
             structured_ga_search(n_iterations=N_BRANIN_ITERS, random_seed=i*2),
-            structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*3, gp_n_iter=25, gp_n_warmup=10000, name='gp_short'),
-            #structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*4, gp_n_iter=100, gp_n_warmup=100000, name='gp_medium'),
+            structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*3, gp_n_iter=25, gp_n_warmup=1000, name='gp_short'),
+            #structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*4, gp_n_iter=100, gp_n_warmup=10000, name='gp_medium'),
             #structured_gp_search(n_iterations=N_BRANIN_ITERS, random_seed=i*5, gp_n_iter=250, gp_n_warmup=100000),
-            #structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*6),
-            structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*7, n_EI_candidates=5, name='TPE_short'),
+            structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*6),
+            #structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*7, n_EI_candidates=5, name='TPE_short'),
             #structured_tpe_search(n_iterations=N_BRANIN_ITERS, random_seed=i*8, n_EI_candidates=100, name='TPE_long'),
             ]
 

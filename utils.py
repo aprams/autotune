@@ -166,6 +166,9 @@ def plot_results(np_results, X=None, dataset_idx=0, avg_datasets=False, t_0=0, p
     :param avg_datasets: Bool indicating whether to average over datasets or not
     :param t_0: first time step to plot from
     """
+
+    from matplotlib import rcParams
+    rcParams.update({'figure.autolayout': True})
     print("Plots, averaged={0} ".format(avg_datasets) +
           (", dataset_idx={0}".format(dataset_idx) if avg_datasets is False else ""))
     plt.figure()
