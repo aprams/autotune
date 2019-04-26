@@ -53,7 +53,7 @@ print("Best value of {0} achieved with parameters {1}".format(results[0][1], dic
 ## Built With
 
 * [BayesianOptimization](https://github.com/fmfn/BayesianOptimization) - Framework for Gaussian Processes based optimization
-* [HyperOpt]((https://github.com/hyperopt/hyperopt/) - Hyperparameter Optimization framework, used for TPEs in this project
+* [HyperOpt](https://github.com/hyperopt/hyperopt/) - Hyperparameter Optimization framework, used for TPEs in this project
 * [Numpy](https://pypi.org/project/numpy/) - NumPy is the fundamental package for array computing with Python.
 * [Scipy](https://pypi.org/project/scipy/) - Scientific Library for Python
 * [Matplotlib](https://pypi.org/project/matplotlib/) - Python plotting package
@@ -66,7 +66,7 @@ print("Best value of {0} achieved with parameters {1}".format(results[0][1], dic
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
 ## Acknowledgments
 
