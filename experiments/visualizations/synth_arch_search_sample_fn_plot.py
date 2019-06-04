@@ -21,7 +21,7 @@ def eval_fn(xs, params):
     return - result
 
 n_sample_points = 200
-for seed in range(100):
+for seed in [32, 91]:#range(100):
     d = 2
     params=[]
     for i in range(d):
@@ -51,7 +51,7 @@ for seed in range(100):
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
-    ax.set_zlabel('f(x)')
+    ax.set_zlabel('f(X, Y)')
 
     #ax.set_xticks([-5, 0, 5, 10])
     #ax.set_yticks([0, 5, 10, 15])

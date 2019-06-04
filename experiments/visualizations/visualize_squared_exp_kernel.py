@@ -39,7 +39,7 @@ ax.view_init(30, -45)
 
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
-ax.set_zlabel('f(x)')
+ax.set_zlabel('f(X, Y)')
 
 #ax.set_xticks([-2, -1, 0, ])
 #ax.set_yticks([-5, 0, 5])

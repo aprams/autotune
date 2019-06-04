@@ -1,6 +1,7 @@
 import os
 import sys
 import config
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -133,8 +134,10 @@ def plot_cpu_time_per_optimizer(results, save_path=None, y_scale='log'):
     _y_label = 'CPU time in seconds'
     if y_scale == 'log':
         _y_label += " (log)"
-    plt.ylabel(_y_label)
-    plt.xlabel('Optimizer')
+    plt.ylabel(_y_label, fontsize=14)
+    plt.xlabel('Optimizer', fontsize=14)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=14)
     if save_path is not None:
         plt.savefig(save_path)
     else:
@@ -300,6 +303,12 @@ def gen_target_fn_samples(target_fn, param_ranges, n_samples_per_axis=100):
 
 
 def gen_example_2d_plot(sample_points, target_fn, param_ranges, name=None):
+    sns.reset_orig()
+    sns.reset_defaults()
+    import importlib
+    importlib.reload(mpl)
+    importlib.reload(plt)
+    importlib.reload(sns)
     _name = name
     if name is None:
         _name = "example_2d_plot"
@@ -321,18 +330,22 @@ def gen_example_2d_plot(sample_points, target_fn, param_ranges, name=None):
         plt.scatter
     )
 
+
     p.ax_marg_x.xlim = (0, np.max(x_marginal))
     p.ax_marg_x.ylim = (0, np.max(x_marginal))
     p.ax_marg_x.fill_between(
         x_range,
-        x_marginal * x_marginal,
+        x_marginal,# * x_marginal,
         alpha=0.5,
         clim=(0, np.max(x_marginal))
     )
 
+
+    p.ax_marg_y.xlim = (0, np.max(y_marginal) * 0)
+    p.ax_marg_y.ylim = (0, np.max(y_marginal) * 0)
     p.ax_marg_y.fill_betweenx(
         y_range,
-        y_marginal * 0.1,
+        y_marginal,
         alpha=0.5,
         clim=(0, 1e10)
     )
@@ -355,8 +368,12 @@ def gen_example_2d_plot(sample_points, target_fn, param_ranges, name=None):
         color='k'
     )
 
+    p.ax_joint.set_xlabel("x")
+    p.ax_joint.set_ylabel("y")
+
     print(evaluations_y_sorted)
 
+    plt.tight_layout()
     #p.ax_marg_y.scatter(
     #    evaluations_y_sorted,
     #    sample_points_y_sorted,

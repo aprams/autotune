@@ -34,6 +34,17 @@ if __name__ == '__main__':
     branin_samples = np.array(branin_samples)
 
     if do_recreate_fun:
+        import seaborn as sns
+        import matplotlib as mpl
+        import matplotlib.pyplot as plt
+        sns.reset_orig()
+        sns.reset_defaults()
+        import importlib
+
+        importlib.reload(mpl)
+        importlib.reload(plt)
+        importlib.reload(sns)
+
         # Make the plot
         fig = plt.figure()
         ax = fig.gca(projection='3d')
@@ -43,12 +54,13 @@ if __name__ == '__main__':
 
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
-        ax.set_zlabel('f(x)')
+        ax.set_zlabel('f(X, Y)')
 
         ax.set_xticks([-5, 0, 5, 10])
         ax.set_yticks([0, 5, 10, 15])
 
         plt.savefig(os.path.join(config.PLOT_FOLDER, './branin_fun'))
+        sys.exit()
 
     def branin_grid_search(random_seed=None):
         print("-" * 53)

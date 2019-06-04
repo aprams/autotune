@@ -10,7 +10,7 @@ import numpy as np
 class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
     name = "GP"
     def __init__(self, hyper_param_list: list, eval_fn: Callable, callback_fn: Callable = None, n_iterations=None,
-                 verbose: int = 0, random_seed=None, name="GP", n_init_points=5,gp_n_warmup=100000, gp_n_iter=25,
+                 verbose: int = 0, random_seed=None, name="GP", n_init_points=5, gp_n_warmup=100000, gp_n_iter=25,
                  **gp_params):
         super().__init__(hyper_param_list=hyper_param_list, eval_fn=eval_fn, callback_fn=callback_fn,
                          n_iterations=n_iterations, verbose=verbose, random_seed=random_seed, name=name)
@@ -57,7 +57,6 @@ class GaussianProcessOptimizer(AbstractHyperParameterOptimizer):
 
     def maximize(self) -> dict:
         generator = self._create_hyperparam_set_generator()
-
         self._on_pre_hyp_opt_step()
         for next_hyperparam_set, eval_metric in generator():
             self._on_post_hyp_opt_step()
