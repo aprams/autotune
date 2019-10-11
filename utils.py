@@ -341,8 +341,8 @@ def gen_example_2d_plot(sample_points, target_fn, param_ranges, name=None):
     )
 
 
-    p.ax_marg_y.xlim = (0, np.max(y_marginal) * 0)
-    p.ax_marg_y.ylim = (0, np.max(y_marginal) * 0)
+    p.ax_marg_y.xlim = (0, np.max(y_marginal))
+    p.ax_marg_y.ylim = (0, np.max(y_marginal))
     p.ax_marg_y.fill_betweenx(
         y_range,
         y_marginal,
@@ -364,6 +364,14 @@ def gen_example_2d_plot(sample_points, target_fn, param_ranges, name=None):
     p.ax_marg_x.scatter(
         sample_points_x_sorted,
         evaluations_x_sorted,
+        alpha=0.5,
+        color='k'
+    )
+
+
+    p.ax_marg_y.scatter(
+        evaluations_y_sorted,
+        sample_points_y_sorted,
         alpha=0.5,
         color='k'
     )
