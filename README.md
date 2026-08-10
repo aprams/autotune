@@ -1,3 +1,5 @@
+
+
 # autotune
 
 This project provides an implementation and comparison of popular hyperparameter optimization strategies. Currently the following optimizers are supported:
@@ -10,7 +12,7 @@ This project provides an implementation and comparison of popular hyperparameter
 ## Structure
 
 - autotune/ - contains the optimizer implementations
-- experiments/ - contains a number of experiments on three datasets (call first call the xy_eval.py, then xy_plot.py for any experiment)
+- experiments/ - contains a number of experiments (e.g., run `branin_eval.py` first, then `branin_plot.py` to generate plots)
 - tests/ - basic tests for the optimizers to ensure their functionality and initially recorded performance
 
 ## Getting Started
@@ -71,5 +73,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 * BayesianOptimization and HyperOpt authors for their great frameworks, which made the development of autotune much easier
-
-
